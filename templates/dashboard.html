@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security Command Center</title>
+<style>
+  :root {
+    --bg:#0a0f1a; --panel:#0f172a; --panel-hover:#131e35; --border:#1e293b;
+    --text:#e2e8f0; --muted:#64748b; --accent:#60a5fa;
+    --crit:#ff3b30; --high:#ff9500; --med:#ffcc00; --low:#34c759;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(180deg, #0f172a 0%, #0a0f1a 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 22px 36px;
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(8px);
+  }
+  header .wrap {
+    max-width: 1400px; margin: auto;
+    display: flex; align-items: center; gap: 24px;
+  }
+  .logo {
+    font-size: 22px; font-weight: 800; color: var(--accent);
+    letter-spacing: -0.3px;
+  }
+  .logo .dot { color: var(--crit); }
+  .tagline {
+    color: var(--muted); font-size: 12px; margin-left: -8px;
+  }
+  .hstat { margin-left: auto; display: flex; gap: 20px; }
+  .hstat .s { text-align: right; }
+  .hstat .n { font-size: 20px; font-weight: 800; }
+  .hstat .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  main {
+    max-width: 1400px; margin: auto; padding: 32px 36px 60px;
+  }
+  h2 {
+    font-size: 13px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 0.8px; margin: 0 0 14px; font-weight: 700;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 18px;
+    margin-bottom: 36px;
+  }
+  .tool-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .tool-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0;
+    height: 3px; background: var(--tool-color, var(--accent));
+  }
+  .tool-card:hover {
+    background: var(--panel-hover);
+    transform: translateY(-2px);
+    border-color: var(--tool-color, var(--accent));
+  }
+  .tool-head {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+  }
+  .tool-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    background: rgba(96, 165, 250, 0.1);
+  }
+  .tool-name { font-size: 16px; font-weight: 700; flex: 1; }
+  .tool-status {
+    font-size: 9px; padding: 3px 8px; border-radius: 10px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
+  }
+  .st-ok { background: rgba(52, 199, 89, 0.15); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.3); }
+  .st-missing { background: rgba(148, 163, 184, 0.1); color: var(--muted); border: 1px solid rgba(148, 163, 184, 0.2); }
+  .tool-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 0 16px; min-height: 36px; }
+  .tool-stats {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 8px; margin-bottom: 14px;
+  }
+  .tstat { background: #020617; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .tstat .n { font-size: 18px; font-weight: 800; color: var(--text); }
+  .tstat .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .tool-actions { display: flex; gap: 8px; }
+  .btn {
+    flex: 1; background: var(--accent); color: #000;
+    border: none; padding: 9px 14px; border-radius: 8px;
+    font-weight: 700; cursor: pointer; font-size: 12px;
+    font-family: inherit; transition: background 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: #93c5fd; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.secondary {
+    background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  }
+  .btn.secondary:hover:not(:disabled) { background: rgba(96, 165, 250, 0.1); }
+  .history {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 22px;
+  }
+  .hist-row {
+    display: grid;
+    grid-template-columns: 24px 180px 1fr 120px 100px;
+    gap: 14px; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border);
+    font-size: 12px;
+  }
+  .hist-row:last-child { border-bottom: none; }
+  .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .hd-success { background: #34c759; box-shadow: 0 0 8px #34c75988; }
+  .hd-failed, .hd-error { background: #ff3b30; box-shadow: 0 0 8px #ff3b3088; }
+  .hd-timeout { background: #ff9500; box-shadow: 0 0 8px #ff950088; }
+  .hist-tool { color: var(--text); font-weight: 600; }
+  .hist-summary { color: var(--muted); }
+  .hist-time { color: var(--muted); font-size: 11px; font-family: 'SF Mono', monospace; }
+  .hist-status {
+    text-align: right; font-weight: 700; font-size: 10px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .hs-success { color: #34c759; }
+  .hs-failed, .hs-error { color: #ff3b30; }
+  .hs-timeout { color: #ff9500; }
+  .empty-state {
+    text-align: center; padding: 40px; color: var(--muted); font-size: 13px;
+  }
+  .modal-bg {
+    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; backdrop-filter: blur(4px);
+  }
+  .modal-bg.show { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 14px; padding: 24px; max-width: 720px; width: 92%;
+    max-height: 80vh; overflow: auto;
+  }
+  .modal h3 { margin: 0 0 14px; color: var(--accent); }
+  .modal pre {
+    background: #020617; border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px; font-size: 11px; color: var(--text);
+    overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+    max-height: 400px;
+  }
+  .modal .close {
+    float: right; background: none; border: none; color: var(--muted);
+    font-size: 22px; cursor: pointer;
+  }
+  .spin {
+    display: inline-block; width: 12px; height: 12px;
+    border: 2px solid rgba(0, 0, 0, 0.3); border-top-color: #000;
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+    vertical-align: -2px; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .banner {
+    background: linear-gradient(90deg, rgba(96, 165, 250, 0.1), rgba(167, 139, 250, 0.1));
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: 14px; padding: 20px 26px; margin-bottom: 32px;
+    display: flex; align-items: center; gap: 20px;
+  }
+  .banner .big { font-size: 34px; font-weight: 900; color: var(--accent); line-height: 1; }
+  .banner .txt { flex: 1; }
+  .banner h3 { margin: 0 0 4px; font-size: 16px; }
+  .banner p { margin: 0; color: var(--muted); font-size: 12px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div>
+      <div class="logo">&#x1F6E1; Security Command Center<span class="dot">.</span></div>
+      <div class="tagline">unified dashboard · ai security projects</div>
+    </div>
+    <div class="hstat">
+      <div class="s"><div class="n" id="stat-total">—</div><div class="l">Total Scans</div></div>
+      <div class="s"><div class="n" id="stat-tools">—</div><div class="l">Tools Installed</div></div>
+      <div class="s"><div class="n" id="stat-last">—</div><div class="l">Last Scan</div></div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="banner">
+    <div class="big">5</div>
+    <div class="txt">
+      <h3>AI Security Projects Suite</h3>
+      <p>Orchestrates SAST, Cloud Misconfig, Prompt Injection, Compliance, and WAF Bypass tools from a single dashboard. All open source, self-hosted, and commercial-grade.</p>
+    </div>
+  </div>
+
+  <h2>Tools</h2>
+  <div class="grid" id="tools-grid">
+    <div class="empty-state">Loading tools...</div>
+  </div>
+
+  <h2>Recent Scans</h2>
+  <div class="history" id="history">
+    <div class="empty-state">No scans yet. Click "Run" on any tool above to start.</div>
+  </div>
+</main>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <button class="close" onclick="closeModal()">&times;</button>
+    <h3 id="modal-title">Scan detail</h3>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const ICONS = {
+  shield: '\u{1F6E1}',
+  cloud: '\u2601\uFE0F',
+  brain: '\u{1F9E0}',
+  'file-check': '\u{1F4CB}',
+  swords: '\u2694\uFE0F',
+};
+
+async function fetchTools() {
+  const res = await fetch('/api/tools');
+  return await res.json();
+}
+
+async function fetchStats() {
+  const res = await fetch('/api/stats');
+  return await res.json();
+}
+
+async function fetchScans() {
+  const res = await fetch('/api/scans?limit=30');
+  return await res.json();
+}
+
+function renderTools(tools, stats) {
+  const grid = document.getElementById('tools-grid');
+  grid.innerHTML = '';
+  for (const [key, meta] of Object.entries(tools)) {
+    const statusClass = meta.installed ? 'st-ok' : 'st-missing';
+    const statusText = meta.installed ? 'installed' : 'missing';
+    const toolStats = (stats.by_tool || {})[key] || { runs: 0, last_summary: {} };
+    const summary = toolStats.last_summary || {};
+    const stat1 = getStat(key, summary, 0);
+    const stat2 = getStat(key, summary, 1);
+    const disabled = meta.installed ? '' : 'disabled';
+    const card = document.createElement('div');
+    card.className = 'tool-card';
+    card.style.setProperty('--tool-color', meta.color);
+    card.innerHTML = `
+      <div class="tool-head">
+        <div class="tool-icon" style="background: ${meta.color}22">
+          ${ICONS[meta.icon] || '\u{1F6E1}'}
+        </div>
+        <div class="tool-name">${meta.name}</div>
+        <span class="tool-status ${statusClass}">${statusText}</span>
+      </div>
+      <p class="tool-desc">${meta.description}</p>
+      <div class="tool-stats">
+        <div class="tstat"><div class="n">${stat1.value}</div><div class="l">${stat1.label}</div></div>
+        <div class="tstat"><div class="n">${stat2.value}</div><div class="l">${stat2.label}</div></div>
+      </div>
+      <div class="tool-actions">
+        <button class="btn" onclick="runTool('${key}', this)" ${disabled}>Run</button>
+        <button class="btn secondary" onclick="viewHistory('${key}')" ${disabled}>History</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+function getStat(key, summary, idx) {
+  const mappings = {
+    sast: [
+      { label: 'Total Findings', key: 'total_findings' },
+      { label: 'Critical', key: ['by_severity', 'CRITICAL'] },
+    ],
+    cloud: [
+      { label: 'Total Findings', key: 'total_findings' },
+      { label: 'Critical', key: ['by_severity', 'CRITICAL'] },
+    ],
+    prompt: [
+      { label: 'Accuracy', key: 'accuracy', suffix: '%' },
+      { label: 'Precision', key: 'precision', suffix: '%' },
+    ],
+    compliance: [
+      { label: 'Compliance', key: 'compliance_percent', suffix: '%' },
+      { label: 'Covered', key: 'covered' },
+    ],
+    waf: [
+      { label: 'Coverage', key: 'coverage_percent', suffix: '%' },
+      { label: 'Gaps', key: 'allowed' },
+    ],
+  };
+  const def = (mappings[key] || [])[idx] || { label: 'Runs', key: null };
+  let value = '—';
+  if (def.key) {
+    const val = Array.isArray(def.key) ? def.key.reduce((o, k) => o && o[k], summary) : summary[def.key];
+    if (val !== undefined && val !== null) value = val + (def.suffix || '');
+  }
+  return { label: def.label, value };
+}
+
+async function runTool(key, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Running';
+  try {
+    const res = await fetch(`/api/run/${key}`, { method: 'POST' });
+    const result = await res.json();
+    if (result.error) {
+      alert('Error: ' + result.error + (result.expected_path ? '\nExpected at: ' + result.expected_path : ''));
+    } else {
+      await refresh();
+      viewScan(result.scan_id);
+    }
+  } catch (e) {
+    alert('Request failed: ' + e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Run';
+  }
+}
+
+function renderHistory(scans, tools) {
+  const h = document.getElementById('history');
+  if (!scans.length) {
+    h.innerHTML = '<div class="empty-state">No scans yet. Click "Run" on any tool above to start.</div>';
+    return;
+  }
+  h.innerHTML = '';
+  for (const s of scans) {
+    const meta = (tools[s.tool] || { name: s.tool });
+    const row = document.createElement('div');
+    row.className = 'hist-row';
+    row.style.cursor = 'pointer';
+    row.onclick = () => viewScan(s.id);
+    const summaryText = formatSummary(s.tool, s.summary);
+    const time = new Date(s.started_at).toLocaleString();
+    row.innerHTML = `
+      <div class="hist-dot hd-${s.status}"></div>
+      <div class="hist-tool">${meta.name}</div>
+      <div class="hist-summary">${summaryText}</div>
+      <div class="hist-time">${time}</div>
+      <div class="hist-status hs-${s.status}">${s.status}</div>
+    `;
+    h.appendChild(row);
+  }
+}
+
+function formatSummary(tool, s) {
+  if (!s) return '—';
+  switch (tool) {
+    case 'sast':
+    case 'cloud':
+      if (s.total_findings !== undefined)
+        return `${s.total_findings} findings (${(s.by_severity && s.by_severity.CRITICAL) || 0} critical)`;
+      break;
+    case 'compliance':
+      if (s.compliance_percent !== undefined)
+        return `${s.compliance_percent}% compliance · ${s.covered || 0} covered`;
+      break;
+    case 'waf':
+      if (s.coverage_percent !== undefined)
+        return `${s.coverage_percent}% coverage · ${s.blocked || 0}/${s.total_tests || 0} blocked`;
+      break;
+    case 'prompt':
+      if (s.accuracy !== undefined) return `Accuracy ${s.accuracy}%`;
+      break;
+  }
+  return JSON.stringify(s).slice(0, 100);
+}
+
+async function viewScan(scanId) {
+  const res = await fetch(`/api/scans/${scanId}`);
+  const s = await res.json();
+  const modal = document.getElementById('modal-bg');
+  const body = document.getElementById('modal-body');
+  document.getElementById('modal-title').textContent = `Scan: ${s.tool} @ ${new Date(s.started_at).toLocaleString()}`;
+  body.innerHTML = `
+    <div style="margin-bottom:14px;color:#64748b;font-size:12px">
+      <b>Status:</b> <span class="hs-${s.status}">${s.status}</span> &nbsp;
+      <b>ID:</b> <code>${s.id}</code>
+    </div>
+    <div style="margin-bottom:14px">
+      <b style="font-size:12px;color:#94a3b8">Summary</b>
+      <pre>${JSON.stringify(s.summary, null, 2)}</pre>
+    </div>
+    <div>
+      <b style="font-size:12px;color:#94a3b8">Output (last 8KB)</b>
+      <pre>${(s.raw_output || '').replace(/[<>&]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;' })[c])}</pre>
+    </div>
+  `;
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('modal-bg').classList.remove('show');
+}
+
+async function viewHistory(tool) {
+  const res = await fetch(`/api/scans?tool=${tool}`);
+  const scans = await res.json();
+  const modal = document.getElementById('modal-bg');
+  const body = document.getElementById('modal-body');
+  document.getElementById('modal-title').textContent = `${tool} history (${scans.length} scans)`;
+  body.innerHTML = scans.length === 0
+    ? '<p style="color:#64748b">No scans yet for this tool.</p>'
+    : '<ul style="list-style:none;padding:0;margin:0">' +
+      scans.map(s => `
+        <li style="padding:10px;border-bottom:1px solid #1e293b;cursor:pointer"
+            onclick="viewScan('${s.id}')">
+          <span class="hs-${s.status}" style="font-size:10px;text-transform:uppercase;font-weight:800">${s.status}</span>
+          <span style="color:#94a3b8;font-size:11px;margin-left:10px">${new Date(s.started_at).toLocaleString()}</span>
+          <div style="color:#cbd5e1;font-size:12px;margin-top:4px">${formatSummary(tool, s.summary)}</div>
+        </li>
+      `).join('') + '</ul>';
+  modal.classList.add('show');
+}
+
+async function refresh() {
+  const [tools, stats, scans] = await Promise.all([fetchTools(), fetchStats(), fetchScans()]);
+  renderTools(tools, stats);
+  renderHistory(scans, tools);
+  document.getElementById('stat-total').textContent = stats.total_scans || 0;
+  document.getElementById('stat-tools').textContent = Object.values(tools).filter(t => t.installed).length + '/5';
+  document.getElementById('stat-last').textContent = stats.last_scan
+    ? new Date(stats.last_scan.started_at).toLocaleTimeString()
+    : '—';
+}
+
+document.getElementById('modal-bg').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-bg') closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+</body>
+</html>

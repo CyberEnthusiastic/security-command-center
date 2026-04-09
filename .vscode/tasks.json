@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "SCC: bootstrap sibling repos",
+      "type": "shell",
+      "command": "bash bootstrap.sh",
+      "windows": { "command": ".\\bootstrap.ps1" },
+      "group": "build"
+    },
+    {
+      "label": "SCC: install dependencies",
+      "type": "shell",
+      "command": "python -m pip install -r requirements.txt",
+      "group": "build"
+    },
+    {
+      "label": "SCC: start server",
+      "type": "shell",
+      "command": "python server.py",
+      "isBackground": true,
+      "group": { "kind": "test", "isDefault": true }
+    },
+    {
+      "label": "SCC: open dashboard",
+      "type": "shell",
+      "command": "start http://127.0.0.1:5500",
+      "windows": { "command": "start http://127.0.0.1:5500" },
+      "linux":   { "command": "xdg-open http://127.0.0.1:5500" },
+      "osx":     { "command": "open http://127.0.0.1:5500" }
+    }
+  ]
+}

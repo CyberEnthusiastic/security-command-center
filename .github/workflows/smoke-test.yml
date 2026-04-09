@@ -1,0 +1,46 @@
+name: Command Center smoke test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Start Command Center in background
+        run: |
+          python server.py --host 127.0.0.1 --port 5500 &
+          sleep 4
+
+      - name: Health check
+        run: |
+          curl -f http://127.0.0.1:5500/api/health | tee /tmp/health.json
+          python -c "
+          import json
+          r = json.load(open('/tmp/health.json'))
+          assert r['status'] == 'ok'
+          print('Health check passed')
+          "
+
+      - name: Tools endpoint returns JSON
+        run: |
+          curl -f http://127.0.0.1:5500/api/tools | python -m json.tool | head -30
+
+      - name: Stats endpoint returns JSON
+        run: curl -f http://127.0.0.1:5500/api/stats
+
+      - name: Dashboard HTML returns 200
+        run: |
+          curl -f -o /tmp/dash.html http://127.0.0.1:5500/
+          grep -q "Security Command Center" /tmp/dash.html && echo "Dashboard renders OK"

@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Command Center: start server",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/server.py",
+      "console": "integratedTerminal",
+      "env": { "FLASK_ENV": "development" }
+    },
+    {
+      "name": "Command Center: debug mode",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/server.py",
+      "args": ["--debug"],
+      "console": "integratedTerminal"
+    }
+  ]
+}

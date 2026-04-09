@@ -1,0 +1,10 @@
+{
+  "tool_paths": {
+    "sast": "../ai-sast-scanner",
+    "cloud": "../cloud-misconfig-hunter",
+    "prompt": "../prompt-injection-proxy",
+    "compliance": "../compliance-gap-analyzer",
+    "waf": "../waf-bypass-lab"
+  },
+  "_note": "Copy to config.json and customize if your tools are in non-default locations. Relative paths are resolved against the Command Center root."
+}
