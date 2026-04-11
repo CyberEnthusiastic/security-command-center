@@ -330,6 +330,13 @@ def api_run(tool_key):
         summary=result["summary"],
         raw=result["output"],
     )
+
+    # Auto-notify via ntfy.sh if enabled
+    try:
+        notify_scan_result(tool_key, result)
+    except Exception:
+        pass
+
     return jsonify({
         "scan_id": scan_id,
         "status": result["status"],
@@ -362,16 +369,23 @@ def api_health():
 
 
 # -----------------------------------------------------------
-# Notification system
+# Notification system (ntfy.sh — free, no account, phone push)
 # -----------------------------------------------------------
 NOTIFICATION_SETTINGS_FILE = BASE_DIR / "data" / "notification_settings.json"
+NTFY_SERVER = "https://ntfy.sh"
 
 
 def load_notification_settings():
     if NOTIFICATION_SETTINGS_FILE.exists():
         return json.loads(NOTIFICATION_SETTINGS_FILE.read_text(encoding="utf-8"))
-    return {"email": "", "enabled": False, "alert_on_critical": True,
-            "alert_on_startup": True, "alert_on_shutdown": True}
+    return {
+        "enabled": False,
+        "topic": "",
+        "server": NTFY_SERVER,
+        "alert_on_critical": True,
+        "alert_on_scan_complete": True,
+        "alert_on_startup": True,
+    }
 
 
 def save_notification_settings(settings):
@@ -379,62 +393,101 @@ def save_notification_settings(settings):
     NOTIFICATION_SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
 
 
-def send_email_notification(subject, body, settings=None):
-    """Send email notification using SMTP (Gmail, Outlook, etc.)."""
+def send_notification(title, message, priority="default", tags="", settings=None):
+    """Send push notification via ntfy.sh (free, no account needed).
+
+    How it works:
+      - ntfy.sh is a free, open-source push notification service
+      - You pick a unique topic name (like a private channel)
+      - Install the ntfy app on your phone and subscribe to that topic
+      - Any message sent to that topic appears as a phone notification
+      - No signup, no API key, no email password needed
+
+    Priority levels: min, low, default, high, urgent
+    Tags: emoji shortcodes like 'warning', 'rotating_light', 'white_check_mark'
+    """
     if not settings:
         settings = load_notification_settings()
-    if not settings.get("enabled") or not settings.get("email"):
+    if not settings.get("enabled") or not settings.get("topic"):
         return False
 
-    smtp_config = settings.get("smtp", {})
-    smtp_host = smtp_config.get("host", "smtp.gmail.com")
-    smtp_port = smtp_config.get("port", 587)
-    smtp_user = smtp_config.get("username", "")
-    smtp_pass = smtp_config.get("password", "")
-
-    if not smtp_user or not smtp_pass:
-        return False
+    server = settings.get("server", NTFY_SERVER).rstrip("/")
+    topic = settings["topic"]
+    url = f"{server}/{topic}"
 
     try:
-        import smtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
+        import urllib.request
+        data = message.encode("utf-8")
+        req = urllib.request.Request(url, data=data, method="POST")
+        req.add_header("Title", title)
+        req.add_header("Priority", priority)
+        if tags:
+            req.add_header("Tags", tags)
+        req.add_header("User-Agent", "SecuritySuite/2.0")
 
-        msg = MIMEMultipart()
-        msg["From"] = smtp_user
-        msg["To"] = settings["email"]
-        msg["Subject"] = f"[SecuritySuite] {subject}"
-        msg.attach(MIMEText(body, "html"))
-
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.starttls()
-            server.login(smtp_user, smtp_pass)
-            server.send_message(msg)
-        return True
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status == 200
     except Exception as e:
-        print(f"[!] Email notification failed: {e}")
+        print(f"[!] ntfy notification failed: {e}")
         return False
+
+
+def notify_scan_result(tool_key, result):
+    """Auto-notify on scan completion if enabled."""
+    settings = load_notification_settings()
+    if not settings.get("enabled") or not settings.get("topic"):
+        return
+
+    summary = result.get("summary", {})
+    status = result.get("status", "unknown")
+    tool_name = TOOL_METADATA.get(tool_key, {}).get("name", tool_key)
+
+    # Always notify on failure
+    if status in ("failed", "error", "timeout"):
+        send_notification(
+            f"{tool_name}: FAILED",
+            f"Scan failed with status: {status}",
+            priority="high",
+            tags="x,warning",
+            settings=settings,
+        )
+        return
+
+    # Check for critical findings
+    critical = 0
+    if "by_severity" in summary:
+        critical = summary["by_severity"].get("CRITICAL", 0)
+    elif "blocked" in summary:
+        critical = summary.get("blocked", 0)
+    elif "total_alerts" in summary:
+        critical = summary.get("total_alerts", 0)
+
+    if critical > 0 and settings.get("alert_on_critical"):
+        send_notification(
+            f"{tool_name}: {critical} CRITICAL findings!",
+            f"Scan completed with {critical} critical issues. Open the dashboard to review.",
+            priority="urgent",
+            tags="rotating_light,skull",
+            settings=settings,
+        )
+    elif settings.get("alert_on_scan_complete"):
+        send_notification(
+            f"{tool_name}: scan complete",
+            f"Status: {status}. Check the dashboard for details.",
+            priority="low",
+            tags="white_check_mark",
+            settings=settings,
+        )
 
 
 @app.route("/api/notifications/settings", methods=["GET", "POST"])
 def api_notification_settings():
     if request.method == "GET":
-        settings = load_notification_settings()
-        if "smtp" in settings and "password" in settings.get("smtp", {}):
-            settings["smtp"]["password"] = "***"  # never expose password
-        return jsonify(settings)
+        return jsonify(load_notification_settings())
     else:
         data = request.get_json(force=True, silent=True) or {}
         current = load_notification_settings()
-        current.update({k: v for k, v in data.items() if k != "smtp"})
-        if "smtp" in data:
-            smtp = data["smtp"]
-            if smtp.get("password") and smtp["password"] != "***":
-                current.setdefault("smtp", {}).update(smtp)
-            else:
-                # Keep existing password if "***" was sent back
-                smtp.pop("password", None)
-                current.setdefault("smtp", {}).update(smtp)
+        current.update(data)
         save_notification_settings(current)
         return jsonify({"status": "saved"})
 
@@ -442,12 +495,15 @@ def api_notification_settings():
 @app.route("/api/notifications/test", methods=["POST"])
 def api_notification_test():
     settings = load_notification_settings()
-    ok = send_email_notification(
-        "Test Notification",
-        "<h2>Security Suite Alert Test</h2><p>If you see this, email notifications are working.</p>",
-        settings,
+    ok = send_notification(
+        "Security Suite — Test Notification",
+        "If you see this on your phone, push notifications are working! "
+        "You will receive alerts for critical findings, scan completions, and system events.",
+        priority="default",
+        tags="bell,white_check_mark",
+        settings=settings,
     )
-    return jsonify({"sent": ok})
+    return jsonify({"sent": ok, "topic": settings.get("topic", "")})
 
 
 # -----------------------------------------------------------

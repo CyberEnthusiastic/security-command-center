@@ -121,43 +121,65 @@ h2{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.8px;ma
 
   <!-- SETTINGS TAB -->
   <div class="tab-content" id="tab-settings">
-    <h2>Notification Settings</h2>
+    <h2>Push Notifications (ntfy.sh)</h2>
     <div class="settings-form">
+      <div style="padding:16px;background:rgba(52,199,89,.08);border:1px solid rgba(52,199,89,.2);border-radius:8px;margin-bottom:20px">
+        <p style="font-size:13px;color:var(--ok);font-weight:700;margin-bottom:6px">Free phone notifications — no account, no password, no email needed</p>
+        <p style="font-size:12px;color:var(--m);line-height:1.6">
+          <a href="https://ntfy.sh" target="_blank" style="color:var(--a)">ntfy.sh</a> is a free, open-source push notification service.
+          You pick a secret topic name (like a private channel), subscribe on your phone, and get instant alerts.
+        </p>
+      </div>
+
+      <div style="padding:16px;background:#020617;border:1px solid var(--b);border-radius:8px;margin-bottom:20px">
+        <p style="font-size:12px;color:var(--a);font-weight:700;margin-bottom:10px">Setup (2 minutes, one-time):</p>
+        <p style="font-size:12px;color:var(--m);line-height:2">
+          <b style="color:var(--t)">Step 1:</b> Install the ntfy app on your phone<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;Android: <a href="https://play.google.com/store/apps/details?id=io.heckel.ntfy" target="_blank" style="color:var(--a)">Google Play Store</a><br>
+          &nbsp;&nbsp;&nbsp;&nbsp;iPhone: <a href="https://apps.apple.com/us/app/ntfy/id1625396347" target="_blank" style="color:var(--a)">Apple App Store</a><br>
+          <b style="color:var(--t)">Step 2:</b> Open the app, tap "+", and subscribe to your topic name below<br>
+          <b style="color:var(--t)">Step 3:</b> Enter the SAME topic name below and click "Save"<br>
+          <b style="color:var(--t)">Step 4:</b> Click "Send Test Notification" to verify<br>
+        </p>
+      </div>
+
       <div class="form-group">
-        <label>Email Address (for alerts)</label>
-        <input type="email" id="set-email" placeholder="your@email.com">
+        <label>Your Topic Name (keep it secret — anyone with this name can see your alerts)</label>
+        <input type="text" id="set-topic" placeholder="my-secret-security-alerts-xyz123">
+        <p style="font-size:10px;color:var(--m);margin-top:4px">Tip: use something unique like "mohith-security-2026" — not "test" or "alerts"</p>
       </div>
       <div class="form-group">
-        <label>SMTP Host</label>
-        <input type="text" id="set-smtp-host" placeholder="smtp.gmail.com" value="smtp.gmail.com">
+        <label>ntfy Server (default is free public server)</label>
+        <input type="text" id="set-server" placeholder="https://ntfy.sh" value="https://ntfy.sh">
       </div>
       <div class="form-group">
-        <label>SMTP Port</label>
-        <input type="number" id="set-smtp-port" placeholder="587" value="587">
+        <label class="toggle"><input type="checkbox" id="set-enabled"> Enable push notifications</label>
       </div>
       <div class="form-group">
-        <label>SMTP Username (your email)</label>
-        <input type="text" id="set-smtp-user" placeholder="your@gmail.com">
+        <label class="toggle"><input type="checkbox" id="set-critical" checked> Alert on CRITICAL findings (urgent priority)</label>
       </div>
       <div class="form-group">
-        <label>SMTP Password (app password for Gmail)</label>
-        <input type="password" id="set-smtp-pass" placeholder="App password">
-      </div>
-      <div class="form-group">
-        <label class="toggle"><input type="checkbox" id="set-enabled"> Enable email notifications</label>
-      </div>
-      <div class="form-group">
-        <label class="toggle"><input type="checkbox" id="set-critical" checked> Alert on CRITICAL findings</label>
+        <label class="toggle"><input type="checkbox" id="set-scan-complete" checked> Alert when any scan completes</label>
       </div>
       <div class="form-group">
         <label class="toggle"><input type="checkbox" id="set-startup" checked> Alert on system startup/shutdown</label>
       </div>
       <button class="btn-save" onclick="saveSettings()">Save Settings</button>
-      <button class="btn-test" onclick="testNotification()">Send Test Email</button>
-      <div id="set-status" style="margin-top:12px;font-size:12px;color:var(--ok)"></div>
-      <div style="margin-top:20px;padding:14px;background:#020617;border:1px solid var(--b);border-radius:6px">
-        <p style="font-size:12px;color:var(--m);margin-bottom:8px"><b style="color:var(--w)">Gmail users:</b> You need an App Password, not your regular password.</p>
-        <p style="font-size:11px;color:var(--m)">1. Go to myaccount.google.com/apppasswords<br>2. Create an app password for "Mail"<br>3. Paste the 16-character password above</p>
+      <button class="btn-test" onclick="testNotification()">Send Test Notification</button>
+      <div id="set-status" style="margin-top:12px;font-size:12px"></div>
+
+      <div style="margin-top:24px;padding:16px;background:#020617;border:1px solid var(--b);border-radius:8px">
+        <p style="font-size:12px;color:var(--a);font-weight:700;margin-bottom:8px">What you'll receive on your phone:</p>
+        <div style="font-size:11px;color:var(--m);line-height:2">
+          <span style="color:var(--cr)">&#x1F6A8;</span> <b>CRITICAL:</b> "AI SAST Scanner: 10 CRITICAL findings!" (urgent priority, vibrates)<br>
+          <span style="color:var(--hi)">&#x26A0;</span> <b>Scan complete:</b> "Cloud Misconfig Hunter: scan complete" (normal priority)<br>
+          <span style="color:var(--cr)">&#x274C;</span> <b>Failures:</b> "WAF Bypass Lab: FAILED" (high priority)<br>
+          <span style="color:var(--ok)">&#x2705;</span> <b>System:</b> "Security Suite started" / "Security Suite stopped"
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:16px;background:#020617;border:1px solid var(--b);border-radius:8px">
+        <p style="font-size:12px;color:var(--m)"><b style="color:var(--w)">Privacy note:</b> ntfy.sh is open-source (<a href="https://github.com/binwiederhier/ntfy" target="_blank" style="color:var(--a)">source code</a>). Messages are encrypted in transit (HTTPS). Topic names are not listed publicly — only someone who knows your exact topic name can see your alerts. For maximum privacy, you can self-host ntfy on your own server and change the "ntfy Server" URL above.</p>
       </div>
     </div>
   </div>
@@ -276,41 +298,46 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
 async function loadSettings(){
   const s=await(await fetch('/api/notifications/settings')).json();
-  document.getElementById('set-email').value=s.email||'';
+  document.getElementById('set-topic').value=s.topic||'';
+  document.getElementById('set-server').value=s.server||'https://ntfy.sh';
   document.getElementById('set-enabled').checked=s.enabled||false;
   document.getElementById('set-critical').checked=s.alert_on_critical!==false;
+  document.getElementById('set-scan-complete').checked=s.alert_on_scan_complete!==false;
   document.getElementById('set-startup').checked=s.alert_on_startup!==false;
-  if(s.smtp){
-    document.getElementById('set-smtp-host').value=s.smtp.host||'smtp.gmail.com';
-    document.getElementById('set-smtp-port').value=s.smtp.port||587;
-    document.getElementById('set-smtp-user').value=s.smtp.username||'';
-    document.getElementById('set-smtp-pass').value=s.smtp.password||'';
-  }
 }
 
 async function saveSettings(){
   const data={
-    email:document.getElementById('set-email').value,
+    topic:document.getElementById('set-topic').value.trim(),
+    server:document.getElementById('set-server').value.trim()||'https://ntfy.sh',
     enabled:document.getElementById('set-enabled').checked,
     alert_on_critical:document.getElementById('set-critical').checked,
+    alert_on_scan_complete:document.getElementById('set-scan-complete').checked,
     alert_on_startup:document.getElementById('set-startup').checked,
-    smtp:{
-      host:document.getElementById('set-smtp-host').value,
-      port:parseInt(document.getElementById('set-smtp-port').value)||587,
-      username:document.getElementById('set-smtp-user').value,
-      password:document.getElementById('set-smtp-pass').value,
-    }
   };
+  if(data.enabled&&!data.topic){
+    document.getElementById('set-status').textContent='Enter a topic name first!';
+    document.getElementById('set-status').style.color='var(--cr)';return;
+  }
   await fetch('/api/notifications/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
-  document.getElementById('set-status').textContent='Settings saved!';
-  setTimeout(()=>document.getElementById('set-status').textContent='',3000);
+  const el=document.getElementById('set-status');
+  el.textContent='Settings saved!';el.style.color='var(--ok)';
+  setTimeout(()=>el.textContent='',3000);
 }
 
 async function testNotification(){
-  document.getElementById('set-status').textContent='Sending test email...';
+  // Save first
+  await saveSettings();
+  const el=document.getElementById('set-status');
+  el.textContent='Sending test notification...';el.style.color='var(--a)';
   const r=await(await fetch('/api/notifications/test',{method:'POST'})).json();
-  document.getElementById('set-status').textContent=r.sent?'Test email sent! Check your inbox.':'Failed to send. Check SMTP settings.';
-  document.getElementById('set-status').style.color=r.sent?'var(--ok)':'var(--cr)';
+  if(r.sent){
+    el.textContent='Notification sent! Check your phone (ntfy app) or visit: '+document.getElementById('set-server').value+'/'+document.getElementById('set-topic').value;
+    el.style.color='var(--ok)';
+  }else{
+    el.textContent='Failed to send. Check your topic name and internet connection.';
+    el.style.color='var(--cr)';
+  }
 }
 
 async function refresh(){
