@@ -14,7 +14,7 @@ Architecture:
   - Subprocess runners for each tool (expects sibling repos or --tool-dir flag)
   - Single-page dashboard (HTML + vanilla JS, no build step)
 
-Author: Adithya Vasamsetti (CyberEnthusiastic)
+Author: Mohith Vasamsetti (CyberEnthusiastic)
 License: MIT
 """
 import argparse
