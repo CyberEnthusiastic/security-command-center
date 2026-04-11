@@ -9,5 +9,8 @@
     "port": 587,
     "username": "vmna56@gmail.com",
     "password": "123456"
-  }
+  },
+  "topic": "mohith-security-2026",
+  "server": "https://ntfy.sh",
+  "alert_on_scan_complete": true
 }
