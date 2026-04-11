@@ -5,454 +5,325 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Security Command Center</title>
 <style>
-  :root {
-    --bg:#0a0f1a; --panel:#0f172a; --panel-hover:#131e35; --border:#1e293b;
-    --text:#e2e8f0; --muted:#64748b; --accent:#60a5fa;
-    --crit:#ff3b30; --high:#ff9500; --med:#ffcc00; --low:#34c759;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    margin: 0;
-    min-height: 100vh;
-  }
-  header {
-    background: linear-gradient(180deg, #0f172a 0%, #0a0f1a 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 22px 36px;
-    position: sticky; top: 0; z-index: 10;
-    backdrop-filter: blur(8px);
-  }
-  header .wrap {
-    max-width: 1400px; margin: auto;
-    display: flex; align-items: center; gap: 24px;
-  }
-  .logo {
-    font-size: 22px; font-weight: 800; color: var(--accent);
-    letter-spacing: -0.3px;
-  }
-  .logo .dot { color: var(--crit); }
-  .tagline {
-    color: var(--muted); font-size: 12px; margin-left: -8px;
-  }
-  .hstat { margin-left: auto; display: flex; gap: 20px; }
-  .hstat .s { text-align: right; }
-  .hstat .n { font-size: 20px; font-weight: 800; }
-  .hstat .l { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  main {
-    max-width: 1400px; margin: auto; padding: 32px 36px 60px;
-  }
-  h2 {
-    font-size: 13px; color: var(--muted); text-transform: uppercase;
-    letter-spacing: 0.8px; margin: 0 0 14px; font-weight: 700;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-    gap: 18px;
-    margin-bottom: 36px;
-  }
-  .tool-card {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 22px;
-    transition: all 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .tool-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0;
-    height: 3px; background: var(--tool-color, var(--accent));
-  }
-  .tool-card:hover {
-    background: var(--panel-hover);
-    transform: translateY(-2px);
-    border-color: var(--tool-color, var(--accent));
-  }
-  .tool-head {
-    display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
-  }
-  .tool-icon {
-    width: 42px; height: 42px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    background: rgba(96, 165, 250, 0.1);
-  }
-  .tool-name { font-size: 16px; font-weight: 700; flex: 1; }
-  .tool-status {
-    font-size: 9px; padding: 3px 8px; border-radius: 10px;
-    font-weight: 800; text-transform: uppercase; letter-spacing: 0.3px;
-  }
-  .st-ok { background: rgba(52, 199, 89, 0.15); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.3); }
-  .st-missing { background: rgba(148, 163, 184, 0.1); color: var(--muted); border: 1px solid rgba(148, 163, 184, 0.2); }
-  .tool-desc { font-size: 12px; color: var(--muted); line-height: 1.5; margin: 0 0 16px; min-height: 36px; }
-  .tool-stats {
-    display: grid; grid-template-columns: 1fr 1fr;
-    gap: 8px; margin-bottom: 14px;
-  }
-  .tstat { background: #020617; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
-  .tstat .n { font-size: 18px; font-weight: 800; color: var(--text); }
-  .tstat .l { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .tool-actions { display: flex; gap: 8px; }
-  .btn {
-    flex: 1; background: var(--accent); color: #000;
-    border: none; padding: 9px 14px; border-radius: 8px;
-    font-weight: 700; cursor: pointer; font-size: 12px;
-    font-family: inherit; transition: background 0.15s;
-  }
-  .btn:hover:not(:disabled) { background: #93c5fd; }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn.secondary {
-    background: transparent; color: var(--accent); border: 1px solid var(--accent);
-  }
-  .btn.secondary:hover:not(:disabled) { background: rgba(96, 165, 250, 0.1); }
-  .history {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 14px; padding: 22px;
-  }
-  .hist-row {
-    display: grid;
-    grid-template-columns: 24px 180px 1fr 120px 100px;
-    gap: 14px; align-items: center;
-    padding: 10px 0; border-bottom: 1px solid var(--border);
-    font-size: 12px;
-  }
-  .hist-row:last-child { border-bottom: none; }
-  .hist-dot { width: 8px; height: 8px; border-radius: 50%; }
-  .hd-success { background: #34c759; box-shadow: 0 0 8px #34c75988; }
-  .hd-failed, .hd-error { background: #ff3b30; box-shadow: 0 0 8px #ff3b3088; }
-  .hd-timeout { background: #ff9500; box-shadow: 0 0 8px #ff950088; }
-  .hist-tool { color: var(--text); font-weight: 600; }
-  .hist-summary { color: var(--muted); }
-  .hist-time { color: var(--muted); font-size: 11px; font-family: 'SF Mono', monospace; }
-  .hist-status {
-    text-align: right; font-weight: 700; font-size: 10px;
-    text-transform: uppercase; letter-spacing: 0.5px;
-  }
-  .hs-success { color: #34c759; }
-  .hs-failed, .hs-error { color: #ff3b30; }
-  .hs-timeout { color: #ff9500; }
-  .empty-state {
-    text-align: center; padding: 40px; color: var(--muted); font-size: 13px;
-  }
-  .modal-bg {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.7);
-    display: none; align-items: center; justify-content: center;
-    z-index: 100; backdrop-filter: blur(4px);
-  }
-  .modal-bg.show { display: flex; }
-  .modal {
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 14px; padding: 24px; max-width: 720px; width: 92%;
-    max-height: 80vh; overflow: auto;
-  }
-  .modal h3 { margin: 0 0 14px; color: var(--accent); }
-  .modal pre {
-    background: #020617; border: 1px solid var(--border); border-radius: 8px;
-    padding: 14px; font-size: 11px; color: var(--text);
-    overflow-x: auto; white-space: pre-wrap; word-break: break-word;
-    max-height: 400px;
-  }
-  .modal .close {
-    float: right; background: none; border: none; color: var(--muted);
-    font-size: 22px; cursor: pointer;
-  }
-  .spin {
-    display: inline-block; width: 12px; height: 12px;
-    border: 2px solid rgba(0, 0, 0, 0.3); border-top-color: #000;
-    border-radius: 50%; animation: spin 0.6s linear infinite;
-    vertical-align: -2px; margin-right: 6px;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  .banner {
-    background: linear-gradient(90deg, rgba(96, 165, 250, 0.1), rgba(167, 139, 250, 0.1));
-    border: 1px solid rgba(96, 165, 250, 0.2);
-    border-radius: 14px; padding: 20px 26px; margin-bottom: 32px;
-    display: flex; align-items: center; gap: 20px;
-  }
-  .banner .big { font-size: 34px; font-weight: 900; color: var(--accent); line-height: 1; }
-  .banner .txt { flex: 1; }
-  .banner h3 { margin: 0 0 4px; font-size: 16px; }
-  .banner p { margin: 0; color: var(--muted); font-size: 12px; }
-  a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+:root{--bg:#0a0f1a;--p:#0f172a;--ph:#131e35;--b:#1e293b;--t:#e2e8f0;--m:#64748b;--a:#60a5fa;--cr:#ff3b30;--hi:#ff9500;--ok:#34c759;--w:#ffcc00}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--t);min-height:100vh}
+header{background:linear-gradient(180deg,#0f172a,#0a0f1a);border-bottom:1px solid var(--b);padding:18px 32px;position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);display:flex;align-items:center;gap:20px}
+.logo{font-size:20px;font-weight:800;color:var(--a)}.logo .d{color:var(--cr)}.tag{color:var(--m);font-size:11px}
+.hstat{margin-left:auto;display:flex;gap:18px}.hs{text-align:right}.hs .n{font-size:18px;font-weight:800}.hs .l{font-size:9px;color:var(--m);text-transform:uppercase;letter-spacing:.5px}
+main{max-width:1400px;margin:auto;padding:24px 32px 60px}
+h2{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.8px;margin:0 0 12px;font-weight:700}
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--b);padding-bottom:0}
+.tab{padding:10px 20px;font-size:12px;font-weight:600;color:var(--m);cursor:pointer;border-bottom:2px solid transparent;transition:.2s}
+.tab:hover{color:var(--t)}.tab.active{color:var(--a);border-bottom-color:var(--a)}
+.tab-content{display:none}.tab-content.active{display:block}
+/* Banner */
+.banner{background:linear-gradient(90deg,rgba(96,165,250,.08),rgba(167,139,250,.08));border:1px solid rgba(96,165,250,.15);border-radius:12px;padding:18px 22px;margin-bottom:20px;display:flex;align-items:center;gap:18px}
+.banner .big{font-size:32px;font-weight:900;color:var(--a)}.banner h3{margin:0 0 2px;font-size:15px}.banner p{margin:0;color:var(--m);font-size:12px}
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:24px}
+.card{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:18px;transition:.2s;position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc,var(--a));opacity:0;transition:.2s}
+.card:hover{background:var(--ph);transform:translateY(-2px);border-color:var(--cc,var(--a))}.card:hover::before{opacity:1}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.card-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(96,165,250,.1)}
+.card-name{font-size:14px;font-weight:700;flex:1}.card-status{font-size:8px;padding:2px 8px;border-radius:8px;font-weight:800;text-transform:uppercase}
+.st-ok{background:rgba(52,199,89,.15);color:var(--ok);border:1px solid rgba(52,199,89,.25)}
+.st-no{background:rgba(148,163,184,.08);color:var(--m);border:1px solid rgba(148,163,184,.15)}
+.card-desc{font-size:11px;color:var(--m);line-height:1.5;margin-bottom:12px;min-height:32px}
+.card-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px}
+.cs{background:#020617;border:1px solid var(--b);border-radius:6px;padding:8px 10px}.cs .n{font-size:16px;font-weight:800}.cs .l{font-size:8px;color:var(--m);text-transform:uppercase}
+.card-btns{display:flex;gap:6px}
+.btn{flex:1;padding:8px 12px;border:none;border-radius:6px;font-weight:700;cursor:pointer;font-size:11px;font-family:inherit;transition:.15s}
+.btn-run{background:var(--a);color:#000}.btn-run:hover{background:#93c5fd}.btn-run:disabled{opacity:.5;cursor:not-allowed}
+.btn-hist{background:transparent;color:var(--a);border:1px solid var(--a)}.btn-hist:hover{background:rgba(96,165,250,.1)}
+/* Alerts */
+.alert-card{background:var(--p);border:1px solid var(--b);border-radius:10px;padding:14px 16px;margin-bottom:8px;border-left:3px solid var(--cr)}
+.alert-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.alert-sev{font-size:9px;padding:2px 8px;border-radius:8px;font-weight:800;color:#000}
+.alert-src{font-size:11px;color:var(--a);font-weight:600}.alert-time{font-size:10px;color:var(--m);margin-left:auto}
+.alert-title{font-size:13px;font-weight:600;margin-bottom:4px}.alert-detail{font-size:11px;color:var(--m);margin-bottom:8px}
+.alert-fix{background:#020617;border:1px solid var(--b);border-radius:6px;padding:10px 12px;font-size:11px;color:var(--t)}
+.alert-fix b{color:var(--ok)}
+/* History */
+.hist-row{display:grid;grid-template-columns:24px 160px 1fr 100px 80px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--b);font-size:12px;cursor:pointer}
+.hist-row:hover{background:rgba(96,165,250,.03)}.hist-dot{width:8px;height:8px;border-radius:50%}
+.hd-s{background:var(--ok);box-shadow:0 0 6px rgba(52,199,89,.5)}.hd-f,.hd-e{background:var(--cr);box-shadow:0 0 6px rgba(255,59,48,.5)}
+.hist-tool{font-weight:600}.hist-sum{color:var(--m)}.hist-time{color:var(--m);font-size:10px}
+.hist-st{text-align:right;font-weight:700;font-size:9px;text-transform:uppercase;letter-spacing:.5px}
+.hs-success{color:var(--ok)}.hs-failed,.hs-error{color:var(--cr)}
+/* Settings */
+.settings-form{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:24px;max-width:600px}
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:11px;color:var(--m);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.form-group input,.form-group select{width:100%;padding:10px 14px;background:#020617;border:1px solid var(--b);border-radius:6px;color:var(--t);font-size:13px;font-family:inherit}
+.form-group input:focus{outline:none;border-color:var(--a)}
+.toggle{display:flex;align-items:center;gap:10px;cursor:pointer;font-size:13px}
+.toggle input{width:18px;height:18px;accent-color:var(--a)}
+.btn-save{background:var(--a);color:#000;border:none;padding:10px 24px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px}
+.btn-test{background:transparent;border:1px solid var(--a);color:var(--a);padding:10px 24px;border-radius:6px;font-weight:700;cursor:pointer;font-size:12px;margin-left:8px}
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.modal-bg.show{display:flex}
+.modal{background:var(--p);border:1px solid var(--b);border-radius:12px;padding:22px;max-width:720px;width:92%;max-height:80vh;overflow:auto}
+.modal h3{margin:0 0 12px;color:var(--a)}.modal pre{background:#020617;border:1px solid var(--b);border-radius:6px;padding:12px;font-size:10px;overflow-x:auto;white-space:pre-wrap;max-height:400px}
+.modal .close{float:right;background:none;border:none;color:var(--m);font-size:20px;cursor:pointer}
+.empty{text-align:center;padding:30px;color:var(--m);font-size:12px}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid rgba(0,0,0,.3);border-top-color:#000;border-radius:50%;animation:sp .6s linear infinite;vertical-align:-1px;margin-right:4px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:768px){header,.tabs{padding:14px 16px}main{padding:16px}.grid{grid-template-columns:1fr}.hist-row{grid-template-columns:20px 1fr 80px}}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="wrap">
-    <div>
-      <div class="logo">&#x1F6E1; Security Command Center<span class="dot">.</span></div>
-      <div class="tagline">unified dashboard · ai security projects</div>
-    </div>
-    <div class="hstat">
-      <div class="s"><div class="n" id="stat-total">—</div><div class="l">Total Scans</div></div>
-      <div class="s"><div class="n" id="stat-tools">—</div><div class="l">Tools Installed</div></div>
-      <div class="s"><div class="n" id="stat-last">—</div><div class="l">Last Scan</div></div>
-    </div>
+  <div>
+    <div class="logo">Security Command Center<span class="d">.</span></div>
+    <div class="tag">10 tools &middot; unified dashboard &middot; local-only</div>
+  </div>
+  <div class="hstat">
+    <div class="hs"><div class="n" id="st-total">-</div><div class="l">Scans</div></div>
+    <div class="hs"><div class="n" id="st-tools">-</div><div class="l">Tools</div></div>
+    <div class="hs"><div class="n" id="st-alerts" style="color:#ff3b30">-</div><div class="l">Alerts</div></div>
+    <div class="hs"><div class="n" id="st-time">-</div><div class="l">Last Scan</div></div>
   </div>
 </header>
 
 <main>
-  <div class="banner">
-    <div class="big">5</div>
-    <div class="txt">
-      <h3>AI Security Projects Suite</h3>
-      <p>Orchestrates SAST, Cloud Misconfig, Prompt Injection, Compliance, and WAF Bypass tools from a single dashboard. All open source, self-hosted, and commercial-grade.</p>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('tools')">Tools</div>
+    <div class="tab" onclick="switchTab('alerts')">Alerts</div>
+    <div class="tab" onclick="switchTab('history')">History</div>
+    <div class="tab" onclick="switchTab('settings')">Settings</div>
+  </div>
+
+  <!-- TOOLS TAB -->
+  <div class="tab-content active" id="tab-tools">
+    <div class="banner">
+      <div class="big">10</div>
+      <div><h3>AI Security Projects Suite</h3><p>All tools run locally. No data leaves your machine. Click "Run" to execute any tool.</p></div>
     </div>
+    <div class="grid" id="toolsGrid"><div class="empty">Loading tools...</div></div>
   </div>
 
-  <h2>Tools</h2>
-  <div class="grid" id="tools-grid">
-    <div class="empty-state">Loading tools...</div>
+  <!-- ALERTS TAB -->
+  <div class="tab-content" id="tab-alerts">
+    <h2>Active Alerts</h2>
+    <p style="color:var(--m);font-size:12px;margin-bottom:16px">Critical and high-severity findings from firewall, ITDR, and AI governance. Each alert includes a fix recommendation.</p>
+    <div id="alertsList"><div class="empty">No alerts yet. Run a scan to generate alerts.</div></div>
   </div>
 
-  <h2>Recent Scans</h2>
-  <div class="history" id="history">
-    <div class="empty-state">No scans yet. Click "Run" on any tool above to start.</div>
+  <!-- HISTORY TAB -->
+  <div class="tab-content" id="tab-history">
+    <h2>Scan History</h2>
+    <div id="historyList"><div class="empty">No scans yet.</div></div>
+  </div>
+
+  <!-- SETTINGS TAB -->
+  <div class="tab-content" id="tab-settings">
+    <h2>Notification Settings</h2>
+    <div class="settings-form">
+      <div class="form-group">
+        <label>Email Address (for alerts)</label>
+        <input type="email" id="set-email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>SMTP Host</label>
+        <input type="text" id="set-smtp-host" placeholder="smtp.gmail.com" value="smtp.gmail.com">
+      </div>
+      <div class="form-group">
+        <label>SMTP Port</label>
+        <input type="number" id="set-smtp-port" placeholder="587" value="587">
+      </div>
+      <div class="form-group">
+        <label>SMTP Username (your email)</label>
+        <input type="text" id="set-smtp-user" placeholder="your@gmail.com">
+      </div>
+      <div class="form-group">
+        <label>SMTP Password (app password for Gmail)</label>
+        <input type="password" id="set-smtp-pass" placeholder="App password">
+      </div>
+      <div class="form-group">
+        <label class="toggle"><input type="checkbox" id="set-enabled"> Enable email notifications</label>
+      </div>
+      <div class="form-group">
+        <label class="toggle"><input type="checkbox" id="set-critical" checked> Alert on CRITICAL findings</label>
+      </div>
+      <div class="form-group">
+        <label class="toggle"><input type="checkbox" id="set-startup" checked> Alert on system startup/shutdown</label>
+      </div>
+      <button class="btn-save" onclick="saveSettings()">Save Settings</button>
+      <button class="btn-test" onclick="testNotification()">Send Test Email</button>
+      <div id="set-status" style="margin-top:12px;font-size:12px;color:var(--ok)"></div>
+      <div style="margin-top:20px;padding:14px;background:#020617;border:1px solid var(--b);border-radius:6px">
+        <p style="font-size:12px;color:var(--m);margin-bottom:8px"><b style="color:var(--w)">Gmail users:</b> You need an App Password, not your regular password.</p>
+        <p style="font-size:11px;color:var(--m)">1. Go to myaccount.google.com/apppasswords<br>2. Create an app password for "Mail"<br>3. Paste the 16-character password above</p>
+      </div>
+    </div>
   </div>
 </main>
 
-<div class="modal-bg" id="modal-bg">
+<div class="modal-bg" id="modalBg">
   <div class="modal">
     <button class="close" onclick="closeModal()">&times;</button>
-    <h3 id="modal-title">Scan detail</h3>
-    <div id="modal-body"></div>
+    <h3 id="modalTitle">Detail</h3>
+    <div id="modalBody"></div>
   </div>
 </div>
 
 <script>
-const ICONS = {
-  shield: '\u{1F6E1}',
-  cloud: '\u2601\uFE0F',
-  brain: '\u{1F9E0}',
-  'file-check': '\u{1F4CB}',
-  swords: '\u2694\uFE0F',
-};
+const ICONS={shield:'\u{1F6E1}',cloud:'\u2601\uFE0F',brain:'\u{1F9E0}','file-check':'\u{1F4CB}',swords:'\u2694\uFE0F',building:'\u{1F3DB}',dollar:'\u{1F4B0}',search:'\u{1F50D}',flame:'\u{1F525}'};
+let allTools={},allAlerts=[];
 
-async function fetchTools() {
-  const res = await fetch('/api/tools');
-  return await res.json();
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.tab-content#tab-${name}`).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{if(t.textContent.toLowerCase()===name||t.onclick.toString().includes(name))t.classList.add('active')});
+  if(name==='alerts')loadAlerts();
+  if(name==='settings')loadSettings();
 }
 
-async function fetchStats() {
-  const res = await fetch('/api/stats');
-  return await res.json();
-}
+async function fetchTools(){return(await fetch('/api/tools')).json();}
+async function fetchStats(){return(await fetch('/api/stats')).json();}
+async function fetchScans(){return(await fetch('/api/scans?limit=30')).json();}
+async function fetchAlerts(){return(await fetch('/api/alerts')).json();}
 
-async function fetchScans() {
-  const res = await fetch('/api/scans?limit=30');
-  return await res.json();
-}
-
-function renderTools(tools, stats) {
-  const grid = document.getElementById('tools-grid');
-  grid.innerHTML = '';
-  for (const [key, meta] of Object.entries(tools)) {
-    const statusClass = meta.installed ? 'st-ok' : 'st-missing';
-    const statusText = meta.installed ? 'installed' : 'missing';
-    const toolStats = (stats.by_tool || {})[key] || { runs: 0, last_summary: {} };
-    const summary = toolStats.last_summary || {};
-    const stat1 = getStat(key, summary, 0);
-    const stat2 = getStat(key, summary, 1);
-    const disabled = meta.installed ? '' : 'disabled';
-    const card = document.createElement('div');
-    card.className = 'tool-card';
-    card.style.setProperty('--tool-color', meta.color);
-    card.innerHTML = `
-      <div class="tool-head">
-        <div class="tool-icon" style="background: ${meta.color}22">
-          ${ICONS[meta.icon] || '\u{1F6E1}'}
-        </div>
-        <div class="tool-name">${meta.name}</div>
-        <span class="tool-status ${statusClass}">${statusText}</span>
-      </div>
-      <p class="tool-desc">${meta.description}</p>
-      <div class="tool-stats">
-        <div class="tstat"><div class="n">${stat1.value}</div><div class="l">${stat1.label}</div></div>
-        <div class="tstat"><div class="n">${stat2.value}</div><div class="l">${stat2.label}</div></div>
-      </div>
-      <div class="tool-actions">
-        <button class="btn" onclick="runTool('${key}', this)" ${disabled}>Run</button>
-        <button class="btn secondary" onclick="viewHistory('${key}')" ${disabled}>History</button>
-      </div>
-    `;
-    grid.appendChild(card);
+function renderTools(tools,stats){
+  const g=document.getElementById('toolsGrid');g.innerHTML='';allTools=tools;
+  for(const[k,m]of Object.entries(tools)){
+    const sc=m.installed?'st-ok':'st-no',sl=m.installed?'installed':'missing';
+    const ts=(stats.by_tool||{})[k]||{runs:0,last_summary:{}};
+    const s=ts.last_summary||{};
+    const s1=getStat(k,s,0),s2=getStat(k,s,1);
+    const dis=m.installed?'':'disabled';
+    const c=document.createElement('div');c.className='card';c.style.setProperty('--cc',m.color);
+    c.innerHTML=`<div class="card-head"><div class="card-icon" style="background:${m.color}22">${ICONS[m.icon]||'\u{1F512}'}</div><div class="card-name">${m.name}</div><span class="card-status ${sc}">${sl}</span></div><p class="card-desc">${m.description}</p><div class="card-stats"><div class="cs"><div class="n">${s1.v}</div><div class="l">${s1.l}</div></div><div class="cs"><div class="n">${s2.v}</div><div class="l">${s2.l}</div></div></div><div class="card-btns"><button class="btn btn-run" onclick="runTool('${k}',this)" ${dis}>Run</button><button class="btn btn-hist" onclick="viewHist('${k}')" ${dis}>History</button></div>`;
+    g.appendChild(c);
   }
 }
 
-function getStat(key, summary, idx) {
-  const mappings = {
-    sast: [
-      { label: 'Total Findings', key: 'total_findings' },
-      { label: 'Critical', key: ['by_severity', 'CRITICAL'] },
-    ],
-    cloud: [
-      { label: 'Total Findings', key: 'total_findings' },
-      { label: 'Critical', key: ['by_severity', 'CRITICAL'] },
-    ],
-    prompt: [
-      { label: 'Accuracy', key: 'accuracy', suffix: '%' },
-      { label: 'Precision', key: 'precision', suffix: '%' },
-    ],
-    compliance: [
-      { label: 'Compliance', key: 'compliance_percent', suffix: '%' },
-      { label: 'Covered', key: 'covered' },
-    ],
-    waf: [
-      { label: 'Coverage', key: 'coverage_percent', suffix: '%' },
-      { label: 'Gaps', key: 'allowed' },
-    ],
-  };
-  const def = (mappings[key] || [])[idx] || { label: 'Runs', key: null };
-  let value = '—';
-  if (def.key) {
-    const val = Array.isArray(def.key) ? def.key.reduce((o, k) => o && o[k], summary) : summary[def.key];
-    if (val !== undefined && val !== null) value = val + (def.suffix || '');
-  }
-  return { label: def.label, value };
+function getStat(k,s,i){
+  const m={sast:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],cloud:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],prompt:[{l:'Accuracy',k:'accuracy',s:'%'},{l:'Precision',k:'precision',s:'%'}],compliance:[{l:'Compliance',k:'compliance_percent',s:'%'},{l:'Covered',k:'covered'}],waf:[{l:'Coverage',k:'coverage_percent',s:'%'},{l:'Gaps',k:'allowed'}],governance:[{l:'Blocked',k:'blocked'},{l:'Total',k:'total'}],saas:[{l:'Savings',k:'potential_annual_savings'},{l:'Shadow IT',k:'shadow_it_count'}],itdr:[{l:'Alerts',k:'total_alerts'},{l:'Flagged',k:'unique_users_flagged'}],firewall:[{l:'Conns',k:'connections'},{l:'Alerts',k:'alerts'}]};
+  const d=(m[k]||[])[i]||{l:'Runs',k:null};let v='\u2014';
+  if(d.k){const val=Array.isArray(d.k)?d.k.reduce((o,x)=>o&&o[x],s):s[d.k];if(val!=null)v=val+(d.s||'');}
+  return{l:d.l,v};
 }
 
-async function runTool(key, btn) {
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Running';
-  try {
-    const res = await fetch(`/api/run/${key}`, { method: 'POST' });
-    const result = await res.json();
-    if (result.error) {
-      alert('Error: ' + result.error + (result.expected_path ? '\nExpected at: ' + result.expected_path : ''));
-    } else {
-      await refresh();
-      viewScan(result.scan_id);
+async function runTool(k,btn){
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>Running';
+  try{const r=await(await fetch(`/api/run/${k}`,{method:'POST'})).json();
+    if(r.error){alert('Error: '+r.error);} else{await refresh();viewScan(r.scan_id);}
+  }catch(e){alert('Failed: '+e.message);}
+  finally{btn.disabled=false;btn.textContent='Run';}
+}
+
+function renderHistory(scans){
+  const h=document.getElementById('historyList');
+  if(!scans.length){h.innerHTML='<div class="empty">No scans yet. Run a tool to see history.</div>';return;}
+  h.innerHTML='';
+  for(const s of scans){
+    const m=allTools[s.tool]||{name:s.tool};
+    const r=document.createElement('div');r.className='hist-row';r.onclick=()=>viewScan(s.id);
+    const sm=fmtSum(s.tool,s.summary);
+    r.innerHTML=`<div class="hist-dot hd-${s.status[0]}"></div><div class="hist-tool">${m.name||s.tool}</div><div class="hist-sum">${sm}</div><div class="hist-time">${new Date(s.started_at).toLocaleString()}</div><div class="hist-st hs-${s.status}">${s.status}</div>`;
+    h.appendChild(r);
+  }
+}
+
+function fmtSum(t,s){
+  if(!s)return'\u2014';
+  if(t==='sast'||t==='cloud')return s.total_findings!=null?`${s.total_findings} findings`:'';
+  if(t==='compliance')return s.compliance_percent!=null?`${s.compliance_percent}% compliance`:'';
+  if(t==='waf')return s.coverage_percent!=null?`${s.coverage_percent}% coverage`:'';
+  if(t==='governance')return s.blocked!=null?`${s.blocked}/${s.total} blocked`:'';
+  if(t==='saas')return s.potential_annual_savings!=null?`$${s.potential_annual_savings.toLocaleString()} savings`:'';
+  if(t==='itdr')return s.total_alerts!=null?`${s.total_alerts} alerts, ${s.unique_users_flagged} users`:'';
+  return JSON.stringify(s).slice(0,80);
+}
+
+async function loadAlerts(){
+  const al=await fetchAlerts();allAlerts=al;
+  const el=document.getElementById('alertsList');
+  document.getElementById('st-alerts').textContent=al.length;
+  if(!al.length){el.innerHTML='<div class="empty">No critical/high alerts. Your systems look clean.</div>';return;}
+  el.innerHTML='';
+  for(const a of al){
+    const sc=a.severity==='CRITICAL'?'#ff3b30':'#ff9500';
+    const d=document.createElement('div');d.className='alert-card';d.style.borderLeftColor=sc;
+    d.innerHTML=`<div class="alert-head"><span class="alert-sev" style="background:${sc}">${a.severity}</span><span class="alert-src">${a.source}</span><span class="alert-time">${a.timestamp?new Date(a.timestamp).toLocaleString():''}</span></div><div class="alert-title">${a.title}</div><div class="alert-detail">${a.detail}</div><div class="alert-fix"><b>How to fix:</b> ${a.fix}</div>`;
+    el.appendChild(d);
+  }
+}
+
+async function viewScan(id){
+  const s=await(await fetch(`/api/scans/${id}`)).json();
+  document.getElementById('modalTitle').textContent=`${s.tool} @ ${new Date(s.started_at).toLocaleString()}`;
+  document.getElementById('modalBody').innerHTML=`<div style="margin-bottom:12px;font-size:12px;color:var(--m)"><b>Status:</b> <span class="hs-${s.status}">${s.status}</span></div><div style="margin-bottom:12px"><b style="font-size:11px;color:var(--m)">Summary</b><pre>${JSON.stringify(s.summary,null,2)}</pre></div><div><b style="font-size:11px;color:var(--m)">Output</b><pre>${(s.raw_output||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'})[c])}</pre></div>`;
+  document.getElementById('modalBg').classList.add('show');
+}
+
+async function viewHist(tool){
+  const sc=await(await fetch(`/api/scans?tool=${tool}`)).json();
+  document.getElementById('modalTitle').textContent=`${tool} history (${sc.length} scans)`;
+  document.getElementById('modalBody').innerHTML=sc.length?'<ul style="list-style:none;padding:0">'+sc.map(s=>`<li style="padding:10px;border-bottom:1px solid var(--b);cursor:pointer" onclick="viewScan('${s.id}')"><span class="hs-${s.status}" style="font-size:10px;text-transform:uppercase;font-weight:800">${s.status}</span> <span style="color:var(--m);font-size:11px;margin-left:8px">${new Date(s.started_at).toLocaleString()}</span><div style="color:var(--t);font-size:12px;margin-top:4px">${fmtSum(tool,s.summary)}</div></li>`).join('')+'</ul>':'<div class="empty">No scans yet.</div>';
+  document.getElementById('modalBg').classList.add('show');
+}
+
+function closeModal(){document.getElementById('modalBg').classList.remove('show');}
+document.getElementById('modalBg').addEventListener('click',e=>{if(e.target.id==='modalBg')closeModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+async function loadSettings(){
+  const s=await(await fetch('/api/notifications/settings')).json();
+  document.getElementById('set-email').value=s.email||'';
+  document.getElementById('set-enabled').checked=s.enabled||false;
+  document.getElementById('set-critical').checked=s.alert_on_critical!==false;
+  document.getElementById('set-startup').checked=s.alert_on_startup!==false;
+  if(s.smtp){
+    document.getElementById('set-smtp-host').value=s.smtp.host||'smtp.gmail.com';
+    document.getElementById('set-smtp-port').value=s.smtp.port||587;
+    document.getElementById('set-smtp-user').value=s.smtp.username||'';
+    document.getElementById('set-smtp-pass').value=s.smtp.password||'';
+  }
+}
+
+async function saveSettings(){
+  const data={
+    email:document.getElementById('set-email').value,
+    enabled:document.getElementById('set-enabled').checked,
+    alert_on_critical:document.getElementById('set-critical').checked,
+    alert_on_startup:document.getElementById('set-startup').checked,
+    smtp:{
+      host:document.getElementById('set-smtp-host').value,
+      port:parseInt(document.getElementById('set-smtp-port').value)||587,
+      username:document.getElementById('set-smtp-user').value,
+      password:document.getElementById('set-smtp-pass').value,
     }
-  } catch (e) {
-    alert('Request failed: ' + e.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = 'Run';
-  }
+  };
+  await fetch('/api/notifications/settings',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  document.getElementById('set-status').textContent='Settings saved!';
+  setTimeout(()=>document.getElementById('set-status').textContent='',3000);
 }
 
-function renderHistory(scans, tools) {
-  const h = document.getElementById('history');
-  if (!scans.length) {
-    h.innerHTML = '<div class="empty-state">No scans yet. Click "Run" on any tool above to start.</div>';
-    return;
-  }
-  h.innerHTML = '';
-  for (const s of scans) {
-    const meta = (tools[s.tool] || { name: s.tool });
-    const row = document.createElement('div');
-    row.className = 'hist-row';
-    row.style.cursor = 'pointer';
-    row.onclick = () => viewScan(s.id);
-    const summaryText = formatSummary(s.tool, s.summary);
-    const time = new Date(s.started_at).toLocaleString();
-    row.innerHTML = `
-      <div class="hist-dot hd-${s.status}"></div>
-      <div class="hist-tool">${meta.name}</div>
-      <div class="hist-summary">${summaryText}</div>
-      <div class="hist-time">${time}</div>
-      <div class="hist-status hs-${s.status}">${s.status}</div>
-    `;
-    h.appendChild(row);
-  }
+async function testNotification(){
+  document.getElementById('set-status').textContent='Sending test email...';
+  const r=await(await fetch('/api/notifications/test',{method:'POST'})).json();
+  document.getElementById('set-status').textContent=r.sent?'Test email sent! Check your inbox.':'Failed to send. Check SMTP settings.';
+  document.getElementById('set-status').style.color=r.sent?'var(--ok)':'var(--cr)';
 }
 
-function formatSummary(tool, s) {
-  if (!s) return '—';
-  switch (tool) {
-    case 'sast':
-    case 'cloud':
-      if (s.total_findings !== undefined)
-        return `${s.total_findings} findings (${(s.by_severity && s.by_severity.CRITICAL) || 0} critical)`;
-      break;
-    case 'compliance':
-      if (s.compliance_percent !== undefined)
-        return `${s.compliance_percent}% compliance · ${s.covered || 0} covered`;
-      break;
-    case 'waf':
-      if (s.coverage_percent !== undefined)
-        return `${s.coverage_percent}% coverage · ${s.blocked || 0}/${s.total_tests || 0} blocked`;
-      break;
-    case 'prompt':
-      if (s.accuracy !== undefined) return `Accuracy ${s.accuracy}%`;
-      break;
-  }
-  return JSON.stringify(s).slice(0, 100);
+async function refresh(){
+  const[tools,stats,scans]=await Promise.all([fetchTools(),fetchStats(),fetchScans()]);
+  renderTools(tools,stats);renderHistory(scans);
+  document.getElementById('st-total').textContent=stats.total_scans||0;
+  document.getElementById('st-tools').textContent=Object.values(tools).filter(t=>t.installed).length+'/'+Object.keys(tools).length;
+  document.getElementById('st-time').textContent=stats.last_scan?new Date(stats.last_scan.started_at).toLocaleTimeString():'-';
+  // Load alert count
+  try{const al=await fetchAlerts();document.getElementById('st-alerts').textContent=al.length;}catch(e){}
 }
 
-async function viewScan(scanId) {
-  const res = await fetch(`/api/scans/${scanId}`);
-  const s = await res.json();
-  const modal = document.getElementById('modal-bg');
-  const body = document.getElementById('modal-body');
-  document.getElementById('modal-title').textContent = `Scan: ${s.tool} @ ${new Date(s.started_at).toLocaleString()}`;
-  body.innerHTML = `
-    <div style="margin-bottom:14px;color:#64748b;font-size:12px">
-      <b>Status:</b> <span class="hs-${s.status}">${s.status}</span> &nbsp;
-      <b>ID:</b> <code>${s.id}</code>
-    </div>
-    <div style="margin-bottom:14px">
-      <b style="font-size:12px;color:#94a3b8">Summary</b>
-      <pre>${JSON.stringify(s.summary, null, 2)}</pre>
-    </div>
-    <div>
-      <b style="font-size:12px;color:#94a3b8">Output (last 8KB)</b>
-      <pre>${(s.raw_output || '').replace(/[<>&]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;' })[c])}</pre>
-    </div>
-  `;
-  modal.classList.add('show');
-}
-
-function closeModal() {
-  document.getElementById('modal-bg').classList.remove('show');
-}
-
-async function viewHistory(tool) {
-  const res = await fetch(`/api/scans?tool=${tool}`);
-  const scans = await res.json();
-  const modal = document.getElementById('modal-bg');
-  const body = document.getElementById('modal-body');
-  document.getElementById('modal-title').textContent = `${tool} history (${scans.length} scans)`;
-  body.innerHTML = scans.length === 0
-    ? '<p style="color:#64748b">No scans yet for this tool.</p>'
-    : '<ul style="list-style:none;padding:0;margin:0">' +
-      scans.map(s => `
-        <li style="padding:10px;border-bottom:1px solid #1e293b;cursor:pointer"
-            onclick="viewScan('${s.id}')">
-          <span class="hs-${s.status}" style="font-size:10px;text-transform:uppercase;font-weight:800">${s.status}</span>
-          <span style="color:#94a3b8;font-size:11px;margin-left:10px">${new Date(s.started_at).toLocaleString()}</span>
-          <div style="color:#cbd5e1;font-size:12px;margin-top:4px">${formatSummary(tool, s.summary)}</div>
-        </li>
-      `).join('') + '</ul>';
-  modal.classList.add('show');
-}
-
-async function refresh() {
-  const [tools, stats, scans] = await Promise.all([fetchTools(), fetchStats(), fetchScans()]);
-  renderTools(tools, stats);
-  renderHistory(scans, tools);
-  document.getElementById('stat-total').textContent = stats.total_scans || 0;
-  document.getElementById('stat-tools').textContent = Object.values(tools).filter(t => t.installed).length + '/5';
-  document.getElementById('stat-last').textContent = stats.last_scan
-    ? new Date(stats.last_scan.started_at).toLocaleTimeString()
-    : '—';
-}
-
-document.getElementById('modal-bg').addEventListener('click', (e) => {
-  if (e.target.id === 'modal-bg') closeModal();
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeModal();
-});
-
-refresh();
-setInterval(refresh, 10000);
+refresh();setInterval(refresh,15000);
 </script>
 </body>
 </html>

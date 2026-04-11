@@ -43,6 +43,10 @@ DEFAULT_TOOL_PATHS = {
     "prompt":     "../prompt-injection-proxy",
     "compliance": "../compliance-gap-analyzer",
     "waf":        "../waf-bypass-lab",
+    "governance": "../ai-governance-framework",
+    "saas":       "../saas-security-posture",
+    "itdr":       "../itdr-engine",
+    "firewall":   "../personal-firewall",
 }
 
 TOOL_METADATA = {
@@ -85,6 +89,38 @@ TOOL_METADATA = {
         "description": "Defensive WAF coverage assessment.",
         "entry": "waf_lab.py",
         "default_args": ["http://127.0.0.1:8088", "--i-am-authorized-to-test", "--delay-ms", "5"],
+    },
+    "governance": {
+        "name": "AI Governance Framework",
+        "icon": "building",
+        "color": "#c084fc",
+        "description": "Enterprise AI tool DLP + RBAC for ChatGPT/Claude/Gemini.",
+        "entry": "governance.py",
+        "default_args": ["--demo"],
+    },
+    "saas": {
+        "name": "SaaS Security Posture",
+        "icon": "dollar",
+        "color": "#2dd4bf",
+        "description": "SaaS security scoring, shadow IT detection, cost optimization.",
+        "entry": "analyzer.py",
+        "default_args": [],
+    },
+    "itdr": {
+        "name": "ITDR Engine",
+        "icon": "search",
+        "color": "#fb923c",
+        "description": "Identity threat detection — impossible travel, MFA fatigue, priv-esc.",
+        "entry": "itdr.py",
+        "default_args": [],
+    },
+    "firewall": {
+        "name": "Personal Firewall",
+        "icon": "flame",
+        "color": "#f43f5e",
+        "description": "Local network monitor, 15K+ threat intel IPs, cryptominer detection.",
+        "entry": "firewall.py",
+        "default_args": ["scan", "--no-intel"],
     },
 }
 
@@ -322,7 +358,185 @@ def api_stats():
 
 @app.route("/api/health")
 def api_health():
-    return jsonify({"status": "ok", "version": "1.0.0"})
+    return jsonify({"status": "ok", "version": "2.0.0"})
+
+
+# -----------------------------------------------------------
+# Notification system
+# -----------------------------------------------------------
+NOTIFICATION_SETTINGS_FILE = BASE_DIR / "data" / "notification_settings.json"
+
+
+def load_notification_settings():
+    if NOTIFICATION_SETTINGS_FILE.exists():
+        return json.loads(NOTIFICATION_SETTINGS_FILE.read_text(encoding="utf-8"))
+    return {"email": "", "enabled": False, "alert_on_critical": True,
+            "alert_on_startup": True, "alert_on_shutdown": True}
+
+
+def save_notification_settings(settings):
+    NOTIFICATION_SETTINGS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    NOTIFICATION_SETTINGS_FILE.write_text(json.dumps(settings, indent=2))
+
+
+def send_email_notification(subject, body, settings=None):
+    """Send email notification using SMTP (Gmail, Outlook, etc.)."""
+    if not settings:
+        settings = load_notification_settings()
+    if not settings.get("enabled") or not settings.get("email"):
+        return False
+
+    smtp_config = settings.get("smtp", {})
+    smtp_host = smtp_config.get("host", "smtp.gmail.com")
+    smtp_port = smtp_config.get("port", 587)
+    smtp_user = smtp_config.get("username", "")
+    smtp_pass = smtp_config.get("password", "")
+
+    if not smtp_user or not smtp_pass:
+        return False
+
+    try:
+        import smtplib
+        from email.mime.text import MIMEText
+        from email.mime.multipart import MIMEMultipart
+
+        msg = MIMEMultipart()
+        msg["From"] = smtp_user
+        msg["To"] = settings["email"]
+        msg["Subject"] = f"[SecuritySuite] {subject}"
+        msg.attach(MIMEText(body, "html"))
+
+        with smtplib.SMTP(smtp_host, smtp_port) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"[!] Email notification failed: {e}")
+        return False
+
+
+@app.route("/api/notifications/settings", methods=["GET", "POST"])
+def api_notification_settings():
+    if request.method == "GET":
+        settings = load_notification_settings()
+        if "smtp" in settings and "password" in settings.get("smtp", {}):
+            settings["smtp"]["password"] = "***"  # never expose password
+        return jsonify(settings)
+    else:
+        data = request.get_json(force=True, silent=True) or {}
+        current = load_notification_settings()
+        current.update({k: v for k, v in data.items() if k != "smtp"})
+        if "smtp" in data:
+            smtp = data["smtp"]
+            if smtp.get("password") and smtp["password"] != "***":
+                current.setdefault("smtp", {}).update(smtp)
+            else:
+                # Keep existing password if "***" was sent back
+                smtp.pop("password", None)
+                current.setdefault("smtp", {}).update(smtp)
+        save_notification_settings(current)
+        return jsonify({"status": "saved"})
+
+
+@app.route("/api/notifications/test", methods=["POST"])
+def api_notification_test():
+    settings = load_notification_settings()
+    ok = send_email_notification(
+        "Test Notification",
+        "<h2>Security Suite Alert Test</h2><p>If you see this, email notifications are working.</p>",
+        settings,
+    )
+    return jsonify({"sent": ok})
+
+
+# -----------------------------------------------------------
+# Alerts + threat summary
+# -----------------------------------------------------------
+@app.route("/api/alerts")
+def api_alerts():
+    """Return recent critical/high findings across all tools."""
+    alerts = []
+    config = app.config.get("TOOL_PATHS", {})
+
+    # Check firewall alerts
+    fw_dir = resolve_tool_path("firewall", config)
+    if fw_dir:
+        log_file = fw_dir / "logs" / "firewall_alerts.jsonl"
+        if log_file.exists():
+            lines = log_file.read_text(encoding="utf-8").strip().split("\n")
+            for line in lines[-20:]:
+                try:
+                    a = json.loads(line)
+                    if a.get("severity") in ("CRITICAL", "HIGH"):
+                        alerts.append({
+                            "source": "Personal Firewall",
+                            "severity": a["severity"],
+                            "title": a.get("rule_name", ""),
+                            "detail": a.get("detail", "")[:200],
+                            "timestamp": a.get("timestamp", ""),
+                            "fix": get_fix_suggestion(a.get("rule_id", "")),
+                        })
+                except Exception:
+                    pass
+
+    # Check ITDR alerts
+    itdr_dir = resolve_tool_path("itdr", config)
+    if itdr_dir:
+        report = itdr_dir / "reports" / "itdr_report.json"
+        if report.exists():
+            try:
+                data = json.loads(report.read_text(encoding="utf-8"))
+                for a in data.get("alerts", [])[-10:]:
+                    if a.get("severity") in ("CRITICAL", "HIGH"):
+                        alerts.append({
+                            "source": "ITDR Engine",
+                            "severity": a["severity"],
+                            "title": a.get("detection_name", ""),
+                            "detail": a.get("detail", "")[:200],
+                            "timestamp": a.get("timestamp", ""),
+                            "fix": a.get("recommended_action", ""),
+                        })
+            except Exception:
+                pass
+
+    # Check governance audit log
+    gov_dir = resolve_tool_path("governance", config)
+    if gov_dir:
+        audit = gov_dir / "data" / "audit_log.jsonl"
+        if audit.exists():
+            lines = audit.read_text(encoding="utf-8").strip().split("\n")
+            for line in lines[-20:]:
+                try:
+                    entry = json.loads(line)
+                    if entry.get("decision") == "BLOCKED":
+                        alerts.append({
+                            "source": "AI Governance",
+                            "severity": "HIGH",
+                            "title": f"Blocked AI prompt from {entry.get('user','?')}",
+                            "detail": f"{entry.get('total_violations',0)} violations detected in {entry.get('tool','?')} prompt",
+                            "timestamp": entry.get("timestamp", ""),
+                            "fix": "Review the blocked prompt. The user may need training on data handling policies.",
+                        })
+                except Exception:
+                    pass
+
+    alerts.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
+    return jsonify(alerts[:50])
+
+
+def get_fix_suggestion(rule_id):
+    """Return human-readable fix suggestion for a firewall rule."""
+    fixes = {
+        "IP-BLOCK": "This IP is on a known threat intelligence blocklist. Block it at your router/firewall level. Check if any data was exfiltrated.",
+        "PORT-BLOCK": "This port is commonly used by malware C2 servers. Kill the process making this connection and scan your system with antivirus.",
+        "SUSP-PORT": "This outbound port is associated with backdoors and remote access tools. Investigate the process and check for unauthorized software.",
+        "DNS-EXFIL": "DNS queries to non-standard resolvers can indicate DNS tunneling/exfiltration. Check if this is a legitimate VPN or corporate DNS server.",
+        "LATERAL-MOVE": "Internal SSH/RDP/VNC connections may indicate lateral movement by an attacker. Verify the user and purpose of this connection.",
+        "CRYPTOMINER": "Connection to a known cryptocurrency mining pool. Kill the process immediately and scan for cryptomining malware.",
+        "THREAT-INTEL-AUTO": "This IP appears on the ipsum or Feodo Tracker threat intelligence feed. It is associated with malware or botnet activity. Block and investigate.",
+    }
+    return fixes.get(rule_id, "Investigate this connection. Check the process, destination IP, and whether this activity is expected.")
 
 
 # -----------------------------------------------------------
