@@ -1,7 +1,7 @@
 # 🛡️ Security Command Center
 
 > **The unified dashboard that orchestrates the entire AI Security Projects suite from a single pane of glass.**
-> SAST + Cloud Misconfig + Prompt Injection + Compliance + WAF Bypass — all 5 tools, one dashboard, zero paid SaaS.
+> SAST, Cloud, IAM, K8s, CI/CD, MITRE, SOC 2, Secrets, LLM Firewall, WAF Lab, Compliance, AI Governance, SaaS Posture, ITDR, Personal Firewall — 15 tools, one dashboard, zero paid SaaS.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)

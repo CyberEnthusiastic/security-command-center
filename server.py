@@ -47,6 +47,13 @@ DEFAULT_TOOL_PATHS = {
     "saas":       "../saas-security-posture",
     "itdr":       "../itdr-engine",
     "firewall":   "../personal-firewall",
+    # Second wave (added 2026-04-18)
+    "iam":        "../iam-least-privilege-analyzer",
+    "k8s":        "../k8s-admission-controller",
+    "cicd":       "../cicd-security-scanner",
+    "mitre":      "../mitre-attack-detection-rules",
+    "soc2":       "../soc2-compliance-automation",
+    "secrets":    "../secrets-detection-rotation-engine",
 }
 
 TOOL_METADATA = {
@@ -121,6 +128,55 @@ TOOL_METADATA = {
         "description": "Local network monitor, 15K+ threat intel IPs, cryptominer detection.",
         "entry": "firewall.py",
         "default_args": ["scan", "--no-intel"],
+    },
+    # Second wave (added 2026-04-18)
+    "iam": {
+        "name": "IAM Least-Privilege Analyzer",
+        "icon": "key",
+        "color": "#f59e0b",
+        "description": "AWS IAM over-privilege detector, 12 CIS-mapped rules, privilege-escalation aware.",
+        "entry": "analyzer.py",
+        "default_args": ["samples/"],
+    },
+    "k8s": {
+        "name": "Kubernetes Admission Controller",
+        "icon": "container",
+        "color": "#3b82f6",
+        "description": "Policy-as-code gate for K8s workloads, 15 CIS K8s rules, webhook + CLI modes.",
+        "entry": "controller.py",
+        "default_args": ["samples/"],
+    },
+    "cicd": {
+        "name": "CI/CD Security Scanner",
+        "icon": "git-branch",
+        "color": "#8b5cf6",
+        "description": "OWASP CICD Top 10 - pwn-request, script injection, unpinned actions, secrets.",
+        "entry": "scanner.py",
+        "default_args": ["samples/"],
+    },
+    "mitre": {
+        "name": "MITRE ATT&CK Detection Rules",
+        "icon": "target",
+        "color": "#ef4444",
+        "description": "Curated detection rules with Sigma / Splunk / Elastic / Sentinel exports.",
+        "entry": "library.py",
+        "default_args": ["coverage"],
+    },
+    "soc2": {
+        "name": "SOC 2 Compliance Automation",
+        "icon": "clipboard-check",
+        "color": "#10b981",
+        "description": "Automated Trust Services Criteria, ISO27001 + NIST CSF cross-mapped.",
+        "entry": "automation.py",
+        "default_args": ["run"],
+    },
+    "secrets": {
+        "name": "Secrets Detection & Rotation Engine",
+        "icon": "lock",
+        "color": "#ec4899",
+        "description": "17-provider secret scanner with rotation runbooks and git history scan.",
+        "entry": "engine.py",
+        "default_args": ["scan", "samples/"],
     },
 }
 
