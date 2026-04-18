@@ -16,28 +16,40 @@ A single-page, dark-mode web dashboard that lets a security team run, track,
 and review results from all **15 tools** in the AI Security Projects suite
 without touching the CLI.
 
-**Application & supply-chain security**
-1. **AI SAST Scanner** — static code analysis for SQLi / XSS / secrets / weak crypto
-2. **Cloud Misconfig Hunter** — CIS-mapped AWS IaC misconfiguration scanner
-3. **CI/CD Security Scanner** — OWASP CICD Top 10, pwn-request & script-injection detector
-4. **Secrets Detection & Rotation Engine** — 17 providers, git-history scan, rotation runbooks
-5. **IAM Least-Privilege Analyzer** — AWS IAM over-privilege detector, CIS-mapped
-6. **Kubernetes Admission Controller** — policy-as-code gate for K8s workloads
+### Application &amp; supply-chain security
 
-**LLM & AI security**
-7. **Prompt Injection Proxy** — hybrid ML + heuristic LLM firewall
-8. **AI Governance Framework** — DLP + RBAC for ChatGPT / Claude / Gemini usage
+| # | Tool | What it does |
+|---|------|--------------|
+| 1 | **AI SAST Scanner** | Static code analysis for SQLi / XSS / secrets / weak crypto |
+| 2 | **Cloud Misconfig Hunter** | CIS-mapped AWS IaC misconfiguration scanner |
+| 3 | **CI/CD Security Scanner** | OWASP CICD Top 10 - pwn-request &amp; script-injection detector |
+| 4 | **Secrets Detection &amp; Rotation Engine** | 17 providers, git-history scan, rotation runbooks |
+| 5 | **IAM Least-Privilege Analyzer** | AWS IAM over-privilege detector, CIS-mapped |
+| 6 | **Kubernetes Admission Controller** | Policy-as-code gate for K8s workloads |
 
-**Compliance & GRC**
-9. **Compliance Gap Analyzer** — RAG-based SOC 2 / ISO 27001 policy analyzer
-10. **SOC 2 Compliance Automation** — automated Trust Services Criteria, ISO / NIST CSF cross-mapped
+### LLM &amp; AI security
 
-**Detection, response & monitoring**
-11. **MITRE ATT&CK Detection Rules Library** — Sigma / Splunk / Elastic / Sentinel exports
-12. **ITDR Engine** — identity threat detection (impossible travel, MFA fatigue, priv-esc)
-13. **WAF Bypass Lab** — defensive WAF coverage assessment
-14. **SaaS Security Posture** — shadow-IT, utilization, cost rationalization
-15. **Personal Firewall** — local network monitor with 15K+ threat-intel IPs
+| # | Tool | What it does |
+|---|------|--------------|
+| 7 | **Prompt Injection Proxy** | Hybrid ML + heuristic LLM firewall |
+| 8 | **AI Governance Framework** | DLP + RBAC for ChatGPT / Claude / Gemini usage |
+
+### Compliance &amp; GRC
+
+| # | Tool | What it does |
+|---|------|--------------|
+| 9 | **Compliance Gap Analyzer** | RAG-based SOC 2 / ISO 27001 policy analyzer |
+| 10 | **SOC 2 Compliance Automation** | Automated Trust Services Criteria, ISO / NIST CSF cross-mapped |
+
+### Detection, response &amp; monitoring
+
+| # | Tool | What it does |
+|----|------|--------------|
+| 11 | **MITRE ATT&amp;CK Detection Rules Library** | Sigma / Splunk / Elastic / Sentinel exports |
+| 12 | **ITDR Engine** | Identity threat detection (impossible travel, MFA fatigue, priv-esc) |
+| 13 | **WAF Bypass Lab** | Defensive WAF coverage assessment |
+| 14 | **SaaS Security Posture** | Shadow-IT, utilization, cost rationalization |
+| 15 | **Personal Firewall** | Local network monitor with 15K+ threat-intel IPs |
 
 Every scan is persisted to a local SQLite database so you get a full history,
 trend view, and per-tool drill-down — no cloud, no account, no subscription.
@@ -79,7 +91,31 @@ gives you 80% of the value of those platforms for 0% of the cost.
 
 ---
 
-## 2-minute quickstart
+## Getting started — no prior experience needed
+
+If you have never used a terminal, follow **Option A**. If you're comfortable with a terminal, jump to **Option B**.
+
+### Option A — Double-click launcher (easiest)
+
+**What you need once** (install and forget):
+
+1. **[Python 3.8 or newer](https://www.python.org/downloads/)** — free, 5-minute installer.
+   - On Windows, tick the box **"Add Python to PATH"** during install.
+2. **[Git](https://git-scm.com/downloads)** — free, 2-minute installer. Accept the defaults.
+
+**Then**:
+
+1. Download this repo as a ZIP: click the green **Code** button above → **Download ZIP** → unzip anywhere (Desktop is fine).
+2. Open the unzipped folder. Double-click:
+   - **Windows:** `start-here.bat`
+   - **macOS:** `start-here.command` (right-click → Open the first time)
+   - **Linux:** `./start-here.sh`
+3. A terminal window opens, clones all 14 sibling tools, installs dependencies, and starts the server.
+4. Your browser pops open at `http://127.0.0.1:5500` — **that's it**. Click any **Run** button to scan.
+
+The launcher is self-healing: if you run it again later, it only pulls updates and re-starts the server.
+
+### Option B — Terminal (for developers)
 
 ```bash
 # 1. Clone this repo
@@ -98,6 +134,8 @@ python server.py
 
 # 5. Open http://127.0.0.1:5500 in your browser
 ```
+
+### What gets installed where
 
 The `bootstrap` script clones these 14 sibling repos into the parent directory:
 
@@ -123,6 +161,17 @@ security-projects/                         ← your parent dir
 
 The Command Center auto-discovers each tool at `../<tool-name>/`. No config
 needed for the default layout.
+
+### Uninstall / remove everything
+
+Don't like the tools? Clean up with one command:
+
+- **Windows:** double-click `uninstall.bat`
+- **macOS / Linux:** `./uninstall.sh`
+
+That removes all 15 tool folders, the SQLite database, cached Python bytecode, and virtual environments. Your own files are not touched. If you ever want it back, repeat the Getting Started steps.
+
+Nothing was ever installed system-wide — no services, no registry keys, no `PATH` changes. Uninstall is literally "delete the folder."
 
 ---
 
