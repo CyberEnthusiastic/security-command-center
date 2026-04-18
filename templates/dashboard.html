@@ -22,6 +22,9 @@ body::after{content:'';position:fixed;top:0;left:0;right:0;height:2px;z-index:99
 @keyframes countUp{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 @keyframes shimmer{0%{background-position:-200% 0}100%{background-position:200% 0}}
 @keyframes cardEnter{from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation:none !important;transition:none !important}
+}
 @keyframes glow{0%,100%{box-shadow:0 0 5px rgba(96,165,250,.1)}50%{box-shadow:0 0 20px rgba(96,165,250,.15)}}
 
 header{background:linear-gradient(180deg,#0f172a,#0a0f1a);border-bottom:1px solid var(--b);padding:18px 32px;
@@ -58,6 +61,10 @@ h2{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.8px;ma
 .card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.1s}.card:nth-child(3){animation-delay:.15s}
 .card:nth-child(4){animation-delay:.2s}.card:nth-child(5){animation-delay:.25s}.card:nth-child(6){animation-delay:.3s}
 .card:nth-child(7){animation-delay:.35s}.card:nth-child(8){animation-delay:.4s}.card:nth-child(9){animation-delay:.45s}
+.card:nth-child(10){animation-delay:.5s}.card:nth-child(11){animation-delay:.55s}.card:nth-child(12){animation-delay:.6s}
+.card:nth-child(13){animation-delay:.65s}.card:nth-child(14){animation-delay:.7s}.card:nth-child(15){animation-delay:.75s}
+.card:nth-child(16){animation-delay:.8s}.card:nth-child(17){animation-delay:.85s}.card:nth-child(18){animation-delay:.9s}
+.card:nth-child(19){animation-delay:.95s}.card:nth-child(20){animation-delay:1s}
 .card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--cc,var(--a));opacity:0;transition:.3s}
 .card::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(96,165,250,.03),transparent 60%);opacity:0;transition:.3s}
 .card:hover{background:var(--ph);transform:translateY(-4px);border-color:var(--cc,var(--a));
@@ -147,8 +154,8 @@ h2{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.8px;ma
   <!-- TOOLS TAB -->
   <div class="tab-content active" id="tab-tools">
     <div class="banner">
-      <div class="big">9</div>
-      <div><h3>AI Security Projects Suite</h3><p>9 security tools + this dashboard. All run locally. No data leaves your machine. Click "Run" to scan.</p></div>
+      <div class="big">15</div>
+      <div><h3>AI Security Projects Suite</h3><p>15 security tools + this dashboard. All run locally. No data leaves your machine. Click "Run" to scan.</p></div>
     </div>
     <div class="grid" id="toolsGrid"><div class="empty">Loading tools...</div></div>
   </div>
@@ -241,7 +248,7 @@ h2{font-size:12px;color:var(--m);text-transform:uppercase;letter-spacing:.8px;ma
 </div>
 
 <script>
-const ICONS={shield:'\u{1F6E1}',cloud:'\u2601\uFE0F',brain:'\u{1F9E0}','file-check':'\u{1F4CB}',swords:'\u2694\uFE0F',building:'\u{1F3DB}',dollar:'\u{1F4B0}',search:'\u{1F50D}',flame:'\u{1F525}'};
+const ICONS={shield:'\u{1F6E1}',cloud:'\u2601\uFE0F',brain:'\u{1F9E0}','file-check':'\u{1F4CB}',swords:'\u2694\uFE0F',building:'\u{1F3DB}',dollar:'\u{1F4B0}',search:'\u{1F50D}',flame:'\u{1F525}',key:'\u{1F511}',container:'\u{1F4E6}','git-branch':'\u{1F33F}',target:'\u{1F3AF}','clipboard-check':'\u{2705}',lock:'\u{1F510}'};
 let allTools={},allAlerts=[];
 
 function switchTab(name){
@@ -273,7 +280,7 @@ function renderTools(tools,stats){
 }
 
 function getStat(k,s,i){
-  const m={sast:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],cloud:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],prompt:[{l:'Accuracy',k:'accuracy',s:'%'},{l:'Precision',k:'precision',s:'%'}],compliance:[{l:'Compliance',k:'compliance_percent',s:'%'},{l:'Covered',k:'covered'}],waf:[{l:'Coverage',k:'coverage_percent',s:'%'},{l:'Gaps',k:'allowed'}],governance:[{l:'Blocked',k:'blocked'},{l:'Total',k:'total'}],saas:[{l:'Savings',k:'potential_annual_savings'},{l:'Shadow IT',k:'shadow_it_count'}],itdr:[{l:'Alerts',k:'total_alerts'},{l:'Flagged',k:'unique_users_flagged'}],firewall:[{l:'Conns',k:'connections'},{l:'Alerts',k:'alerts'}]};
+  const m={sast:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],cloud:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],prompt:[{l:'Accuracy',k:'accuracy',s:'%'},{l:'Precision',k:'precision',s:'%'}],compliance:[{l:'Compliance',k:'compliance_percent',s:'%'},{l:'Covered',k:'covered'}],waf:[{l:'Coverage',k:'coverage_percent',s:'%'},{l:'Gaps',k:'allowed'}],governance:[{l:'Blocked',k:'blocked'},{l:'Total',k:'total'}],saas:[{l:'Savings',k:'potential_annual_savings'},{l:'Shadow IT',k:'shadow_it_count'}],itdr:[{l:'Alerts',k:'total_alerts'},{l:'Flagged',k:'unique_users_flagged'}],firewall:[{l:'Conns',k:'connections'},{l:'Alerts',k:'alerts'}],iam:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],k8s:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],cicd:[{l:'Findings',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}],mitre:[{l:'Rules',k:'total_rules'},{l:'Tactics',k:'tactics_covered'}],soc2:[{l:'Score',k:'overall_score',s:'%'},{l:'Pass',k:['by_status','PASS']}],secrets:[{l:'Secrets',k:'total_findings'},{l:'Critical',k:['by_severity','CRITICAL']}]};
   const d=(m[k]||[])[i]||{l:'Runs',k:null};let v='\u2014';
   if(d.k){const val=Array.isArray(d.k)?d.k.reduce((o,x)=>o&&o[x],s):s[d.k];if(val!=null)v=val+(d.s||'');}
   return{l:d.l,v};

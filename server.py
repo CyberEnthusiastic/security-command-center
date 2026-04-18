@@ -32,6 +32,10 @@ from typing import Dict, List, Optional
 from flask import Flask, jsonify, render_template, request, send_from_directory
 
 app = Flask(__name__, template_folder="templates", static_folder="static")
+# Preserve TOOL_METADATA insertion order in JSON responses so the dashboard
+# renders tools in the curated order (not alphabetical).
+app.config["JSON_SORT_KEYS"] = False
+app.json.sort_keys = False
 
 BASE_DIR = Path(__file__).parent
 DB_PATH = BASE_DIR / "data" / "scc.db"
