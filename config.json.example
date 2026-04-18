@@ -1,10 +1,20 @@
 {
   "tool_paths": {
-    "sast": "../ai-sast-scanner",
-    "cloud": "../cloud-misconfig-hunter",
-    "prompt": "../prompt-injection-proxy",
+    "sast":       "../ai-sast-scanner",
+    "cloud":      "../cloud-misconfig-hunter",
+    "prompt":     "../prompt-injection-proxy",
     "compliance": "../compliance-gap-analyzer",
-    "waf": "../waf-bypass-lab"
+    "waf":        "../waf-bypass-lab",
+    "governance": "../ai-governance-framework",
+    "saas":       "../saas-security-posture",
+    "itdr":       "../itdr-engine",
+    "firewall":   "../personal-firewall",
+    "iam":        "../iam-least-privilege-analyzer",
+    "k8s":        "../k8s-admission-controller",
+    "cicd":       "../cicd-security-scanner",
+    "mitre":      "../mitre-attack-detection-rules",
+    "soc2":       "../soc2-compliance-automation",
+    "secrets":    "../secrets-detection-rotation-engine"
   },
   "_note": "Copy to config.json and customize if your tools are in non-default locations. Relative paths are resolved against the Command Center root."
 }

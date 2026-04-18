@@ -1,4 +1,4 @@
-# Bootstrap script: clones all 5 sibling AI Security Projects repos
+# Bootstrap script: clones all 14 sibling AI Security Projects repos
 # Usage: .\bootstrap.ps1
 
 $ErrorActionPreference = "Stop"
@@ -9,11 +9,23 @@ function Warn { param($m) Write-Host "[!] $m" -ForegroundColor Yellow }
 
 $parentDir = (Resolve-Path "$PSScriptRoot\..").Path
 $repos = @(
+    # Original 9
     "ai-sast-scanner",
     "cloud-misconfig-hunter",
     "prompt-injection-proxy",
     "compliance-gap-analyzer",
-    "waf-bypass-lab"
+    "waf-bypass-lab",
+    "ai-governance-framework",
+    "saas-security-posture",
+    "itdr-engine",
+    "personal-firewall",
+    # Second wave (added 2026-04-18)
+    "iam-least-privilege-analyzer",
+    "k8s-admission-controller",
+    "cicd-security-scanner",
+    "mitre-attack-detection-rules",
+    "soc2-compliance-automation",
+    "secrets-detection-rotation-engine"
 )
 
 Log "Cloning sibling AI Security Projects into $parentDir"
@@ -28,6 +40,6 @@ foreach ($repo in $repos) {
     }
 }
 
-Ok "All 5 sibling repos are in place. Start the Command Center with:"
+Ok "All 14 sibling repos are in place. Start the Command Center with:"
 Write-Host "   python server.py"
 Write-Host "Then open:  http://127.0.0.1:5500"

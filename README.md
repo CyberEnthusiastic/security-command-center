@@ -13,14 +13,31 @@
 ## What it is
 
 A single-page, dark-mode web dashboard that lets a security team run, track,
-and review results from all 5 tools in the AI Security Projects suite without
-touching the CLI:
+and review results from all **15 tools** in the AI Security Projects suite
+without touching the CLI.
 
-1. **AI SAST Scanner** — static code analysis
-2. **Cloud Misconfiguration Hunter** — AWS IaC security
-3. **Prompt Injection Proxy** — LLM firewall benchmark
-4. **Compliance Gap Analyzer** — SOC 2 / ISO 27001 policy analysis
-5. **WAF Bypass Lab** — WAF coverage testing
+**Application & supply-chain security**
+1. **AI SAST Scanner** — static code analysis for SQLi / XSS / secrets / weak crypto
+2. **Cloud Misconfig Hunter** — CIS-mapped AWS IaC misconfiguration scanner
+3. **CI/CD Security Scanner** — OWASP CICD Top 10, pwn-request & script-injection detector
+4. **Secrets Detection & Rotation Engine** — 17 providers, git-history scan, rotation runbooks
+5. **IAM Least-Privilege Analyzer** — AWS IAM over-privilege detector, CIS-mapped
+6. **Kubernetes Admission Controller** — policy-as-code gate for K8s workloads
+
+**LLM & AI security**
+7. **Prompt Injection Proxy** — hybrid ML + heuristic LLM firewall
+8. **AI Governance Framework** — DLP + RBAC for ChatGPT / Claude / Gemini usage
+
+**Compliance & GRC**
+9. **Compliance Gap Analyzer** — RAG-based SOC 2 / ISO 27001 policy analyzer
+10. **SOC 2 Compliance Automation** — automated Trust Services Criteria, ISO / NIST CSF cross-mapped
+
+**Detection, response & monitoring**
+11. **MITRE ATT&CK Detection Rules Library** — Sigma / Splunk / Elastic / Sentinel exports
+12. **ITDR Engine** — identity threat detection (impossible travel, MFA fatigue, priv-esc)
+13. **WAF Bypass Lab** — defensive WAF coverage assessment
+14. **SaaS Security Posture** — shadow-IT, utilization, cost rationalization
+15. **Personal Firewall** — local network monitor with 15K+ threat-intel IPs
 
 Every scan is persisted to a local SQLite database so you get a full history,
 trend view, and per-tool drill-down — no cloud, no account, no subscription.
@@ -43,7 +60,7 @@ Both screenshots are captured from a real local run against the bundled samples.
 
 ## Why it exists
 
-Running 5 separate security tools by hand is annoying. Buying enterprise
+Running **15 separate security tools** by hand is annoying. Buying enterprise
 security orchestration tools (Panther, Tines, Splunk SOAR, Torq) to solve
 that is expensive. This project is the smallest possible Flask app that
 gives you 80% of the value of those platforms for 0% of the cost.
@@ -52,12 +69,13 @@ gives you 80% of the value of those platforms for 0% of the cost.
 |---|---|---|---|---|
 | **Price** | Free (MIT) | $$$$ / yr | $$$ / yr | $$$ / yr |
 | **Self-hosted** | Yes | Yes (paid) | No | Limited |
-| **Tools orchestrated** | 5 bundled | 300+ via store | 400+ via store | 60+ detections |
+| **Tools orchestrated** | **15 bundled** | 300+ via store | 400+ via store | 60+ detections |
 | **Runtime deps** | Flask only | JVM + DB cluster | Cloud-only | Snowflake + stack |
 | **Install time** | 2 min | Hours | Hours | Days |
 | **SQLite history** | Built-in | Enterprise DB | SaaS | Data warehouse |
 | **Single-page UI** | Yes (vanilla JS) | Complex | SaaS | SaaS |
 | **Air-gapped** | Yes | Yes | No | No |
+| **Coverage** | AppSec, cloud, CI/CD, LLM, compliance, detection, identity, SaaS, endpoint | General-purpose SOAR | General-purpose SOAR | Detection-focused |
 
 ---
 
@@ -68,7 +86,7 @@ gives you 80% of the value of those platforms for 0% of the cost.
 git clone https://github.com/CyberEnthusiastic/security-command-center.git
 cd security-command-center
 
-# 2. Clone all 5 sibling tools (one command)
+# 2. Clone all 14 sibling tools (one command)
 ./bootstrap.sh        # Linux / macOS / Git Bash
 .\bootstrap.ps1       # Windows PowerShell
 
@@ -81,16 +99,26 @@ python server.py
 # 5. Open http://127.0.0.1:5500 in your browser
 ```
 
-The `bootstrap` script clones these 5 sibling repos into the parent directory:
+The `bootstrap` script clones these 14 sibling repos into the parent directory:
 
 ```
-security-projects/                     ← your parent dir
-├── security-command-center/           ← you are here
-├── ai-sast-scanner/                   ← cloned by bootstrap
-├── cloud-misconfig-hunter/            ← cloned by bootstrap
-├── prompt-injection-proxy/            ← cloned by bootstrap
-├── compliance-gap-analyzer/           ← cloned by bootstrap
-└── waf-bypass-lab/                    ← cloned by bootstrap
+security-projects/                         ← your parent dir
+├── security-command-center/               ← you are here
+├── ai-sast-scanner/                       ← cloned by bootstrap
+├── cloud-misconfig-hunter/                ← cloned by bootstrap
+├── prompt-injection-proxy/                ← cloned by bootstrap
+├── compliance-gap-analyzer/               ← cloned by bootstrap
+├── waf-bypass-lab/                        ← cloned by bootstrap
+├── ai-governance-framework/               ← cloned by bootstrap
+├── saas-security-posture/                 ← cloned by bootstrap
+├── itdr-engine/                           ← cloned by bootstrap
+├── personal-firewall/                     ← cloned by bootstrap
+├── iam-least-privilege-analyzer/          ← cloned by bootstrap
+├── k8s-admission-controller/              ← cloned by bootstrap
+├── cicd-security-scanner/                 ← cloned by bootstrap
+├── mitre-attack-detection-rules/          ← cloned by bootstrap
+├── soc2-compliance-automation/            ← cloned by bootstrap
+└── secrets-detection-rotation-engine/     ← cloned by bootstrap
 ```
 
 The Command Center auto-discovers each tool at `../<tool-name>/`. No config
@@ -102,32 +130,42 @@ needed for the default layout.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
-│  🛡️ Security Command Center                3 scans | 5/5 tools | 3m │
+│  🛡️ Security Command Center              9 scans | 15/15 tools | 3m │
 ├──────────────────────────────────────────────────────────────────────┤
 │                                                                      │
-│    5  AI Security Projects Suite                                     │
-│       Orchestrates SAST, Cloud, Prompt Injection, Compliance, WAF    │
+│   15  AI Security Projects Suite                                     │
+│       15 security tools + this dashboard. All run locally.           │
 │                                                                      │
 │  TOOLS                                                               │
 │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐     │
 │  │ 🛡️ AI SAST       │ │ ☁️ Cloud Hunter  │ │ 🧠 Prompt Proxy  │     │
-│  │   installed      │ │   installed      │ │   installed      │     │
 │  │ 16 findings      │ │ 19 findings      │ │ 100% accuracy    │     │
 │  │ 10 critical      │ │  7 critical      │ │ 100% precision   │     │
-│  │ [Run]  [History] │ │ [Run]  [History] │ │ [Run]  [History] │     │
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘     │
-│  ┌──────────────────┐ ┌──────────────────┐                          │
-│  │ 📋 Compliance    │ │ ⚔️ WAF Bypass    │                          │
-│  │   installed      │ │   installed      │                          │
-│  │ 55% compliance   │ │ 91.4% coverage   │                          │
-│  │  2 covered       │ │  9 gaps          │                          │
-│  │ [Run]  [History] │ │ [Run]  [History] │                          │
-│  └──────────────────┘ └──────────────────┘                          │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐     │
+│  │ 📋 Compliance    │ │ ⚔️ WAF Bypass    │ │ 🏛️ AI Governance │     │
+│  │ 55% compliance   │ │ 91.4% coverage   │ │ DLP + RBAC ready │     │
+│  └──────────────────┘ └──────────────────┘ └──────────────────┘     │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐     │
+│  │ 💰 SaaS Posture  │ │ 🔍 ITDR Engine   │ │ 🔥 Firewall      │     │
+│  │ $277K saved      │ │ impossible-travel│ │ 15K+ bad IPs     │     │
+│  └──────────────────┘ └──────────────────┘ └──────────────────┘     │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐     │
+│  │ 🔑 IAM Analyzer  │ │ 📦 K8s Gatekeep. │ │ 🌿 CI/CD Scanner │     │
+│  │ 26 findings      │ │ 22 findings      │ │ 11 findings      │     │
+│  │  7 critical      │ │  3 critical      │ │  3 critical      │     │
+│  └──────────────────┘ └──────────────────┘ └──────────────────┘     │
+│  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐     │
+│  │ 🎯 MITRE ATT&CK  │ │ ✅ SOC 2 Auto    │ │ 🔐 Secrets Engine│     │
+│  │ 12 rules, 7 tac. │ │ 95% pass · 19/20 │ │ 8 secrets found  │     │
+│  └──────────────────┘ └──────────────────┘ └──────────────────┘     │
 │                                                                      │
 │  RECENT SCANS                                                        │
 │  ● ai-sast-scanner      16 findings (10 critical)  3m ago  success   │
-│  ● waf-bypass-lab       91.4% coverage · 96/105    5m ago  success   │
-│  ● compliance-gap       55% compliance · 2 covered 7m ago  success   │
+│  ● iam-least-privilege  26 findings ( 7 critical)  4m ago  success   │
+│  ● k8s-admission        22 findings ( 3 critical)  5m ago  success   │
+│  ● secrets-engine        8 secrets  ( 3 critical)  6m ago  success   │
+│  ● soc2-compliance      19/20 pass (95% score)     7m ago  success   │
 └──────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -140,11 +178,12 @@ Click **History** on any tool to see every run it has ever executed.
 
 ```
 ┌─────────────┐    HTTP     ┌───────────────────┐    subprocess    ┌────────────┐
-│   Browser   │ ─────────── │ server.py (Flask) │ ──────────────── │ 5 tools    │
+│   Browser   │ ─────────── │ server.py (Flask) │ ──────────────── │ 15 tools   │
 │ dashboard   │             │                   │                  │ (siblings) │
 └─────────────┘             │  SQLite (scc.db)  │                  └────────────┘
                             │  - scan history   │
                             │  - per-tool trend │
+                            │  - daily updater  │  (threat intel)
                             └───────────────────┘
 ```
 
@@ -196,11 +235,21 @@ next to `server.py`:
 ```json
 {
   "tool_paths": {
-    "sast": "/opt/security-tools/ai-sast-scanner",
-    "cloud": "/opt/security-tools/cloud-misconfig-hunter",
-    "prompt": "../prompt-injection-proxy",
+    "sast":       "/opt/security-tools/ai-sast-scanner",
+    "cloud":      "/opt/security-tools/cloud-misconfig-hunter",
+    "prompt":     "../prompt-injection-proxy",
     "compliance": "/home/me/work/compliance-analyzer",
-    "waf": "../waf-bypass-lab"
+    "waf":        "../waf-bypass-lab",
+    "governance": "../ai-governance-framework",
+    "saas":       "../saas-security-posture",
+    "itdr":       "../itdr-engine",
+    "firewall":   "../personal-firewall",
+    "iam":        "../iam-least-privilege-analyzer",
+    "k8s":        "../k8s-admission-controller",
+    "cicd":       "../cicd-security-scanner",
+    "mitre":      "../mitre-attack-detection-rules",
+    "soc2":       "../soc2-compliance-automation",
+    "secrets":    "../secrets-detection-rotation-engine"
   }
 }
 ```
@@ -212,7 +261,7 @@ A copy-me file is provided as `config.json.example`.
 
 ## Extending
 
-Want to add a 6th tool? Three steps:
+Want to add a 16th tool? Three steps:
 
 1. Add metadata to `TOOL_METADATA` in `server.py`:
    ```python
