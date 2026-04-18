@@ -1,0 +1,4 @@
+Security Command Center runs as a web app on http://localhost:5500
+Open any browser to that URL after running python server.py
+The dashboard orchestrates 9 AI Security Tools (SAST, Cloud, LLM Firewall,
+Compliance, WAF, AI Governance, SaaS Posture, ITDR, Personal Firewall).
